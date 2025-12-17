@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .similarity-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .similarity-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+        }
+        .similarity-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #f59e0b;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+        }
+        .similarity-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.4);
+        }
+        a:hover .similarity-badge {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .similarity-high:hover {
+            background: rgba(239, 68, 68, 0.3);
+        }
+        .similarity-medium:hover {
+            background: rgba(245, 158, 11, 0.3);
+        }
+        .similarity-low:hover {
+            background: rgba(16, 185, 129, 0.3);
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <!-- Mobile Top Bar (visible only on mobile) -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" id="mobileMenuToggle" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-logo">
+            <img src="/static/logo.png" alt="UniPortal">
+            <span>UniPortal</span>
+        </div>
+        <div class="mobile-avatar">
+            {{ current_user.avatar_initials }}
+        </div>
+    </div>
+
+    <!-- Sidebar (hidden on mobile by default, visible on desktop) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <img src="/static/logo.png" alt="UniPortal Logo">
+                <span>UniPortal Admin</span>
+            </div>
+            
+            <!-- User Profile Section -->
+            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="color: white; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ current_user.username }}</div>
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">{{ current_user.role }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if current_user.class_group and current_user.class_group.is_active_premium %}
+                    <span style="display: inline-block; padding: 4px 8px; background: rgba(156, 163, 175, 0.8); color: white; border-radius: 6px; font-size: 11px; font-weight: 600;">PRO</span>
+                    {% else %}
+                    <a href="{{ url_for('main.subscription') }}" style="display: inline-block; padding: 4px 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🚀 Upgrade
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.profile') }}" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: white; text-decoration: none; flex-shrink: 0;">
+                        {{ current_user.avatar_initials }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" onclick="showView('dashboard'); return false;">
+                <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showView('gradingCenter'); return false;">
+                <span class="icon"><i class="fas fa-pen-fancy"></i></span>
+                <span>Grading Center</span>
+            </a>
+            <a href="{{ url_for('main.attendance_dashboard') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-clipboard-check"></i></span>
+                <span>Attendance</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showView('broadcasts'); return false;">
+                <span class="icon"><i class="fas fa-bullhorn"></i></span>
+                <span>Broadcasts</span>
+            </a>
+            <a href="{{ url_for('main.forum') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-comments"></i></span>
+                <span>Forum</span>
+            </a>
+            <a href="{{ url_for('main.library') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-book-open"></i></span>
+                <span>Library</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showView('slideBank'); return false;">
+                <span class="icon"><i class="fas fa-folder"></i></span>
+                <span>Slide Bank</span>
+            </a>
+            <a href="{{ url_for('main.subscription') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-gem"></i></span>
+                <span>Subscription</span>
+            </a>
+            <a href="{{ url_for('main.analytics') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                <span>Analytics</span>
+            </a>
+            <a href="{{ url_for('main.settings') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('main.logout') }}" class="nav-item" onclick="return confirmLogout(event);">
+                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Subscription Status Banner -->
+        {% if current_user.class_group %}
+            {% if not is_premium %}
+                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #991b1b; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 32px;">⚠️</div>
+                        <div style="flex: 1;">
+                            <h3 style="color: white; font-size: 18px; margin-bottom: 5px; font-weight: 600;">Premium Subscription Expired</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 10px;">Class premium has expired. Contact the Class Rep to renew or upgrade now.</p>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">🔒 Locked features: Grade assignments, Upload slides, Create attendance sessions</p>
+                        </div>
+                        <a href="{{ url_for('main.subscription') }}" style="padding: 12px 24px; background: white; color: #dc2626; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            View Plans
+                        </a>
+                    </div>
+                </div>
+            {% elif days_remaining <= 7 %}
+                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #b45309; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 24px;">⏰</div>
+                        <div style="flex: 1;">
+                            <h3 style="color: white; font-size: 16px; margin-bottom: 3px; font-weight: 600;">Premium Expiring Soon</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px;">Premium expires in {{ days_remaining }} day{{ 's' if days_remaining != 1 else '' }}. Contact Class Rep to renew.</p>
+                        </div>
+                        <a href="{{ url_for('main.subscription') }}" style="padding: 10px 20px; background: white; color: #d97706; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; white-space: nowrap;">
+                            Renew Now
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view-section active">
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title">UniPortal Admin</h1>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{{ url_for('main.download_all_zip') }}" class="btn-download-all">
+                        📦 Download All (.zip)
+                    </a>
+                    <form method="POST" action="{{ url_for('main.run_archiver') }}" style="display: inline;" onsubmit="return confirm('⚠️ This will move all files to cold storage (archive). Continue?');">
+                        <button type="submit" class="btn-download-all" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            🗄️ Run Archiver
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Stats Grid (Responsive: 1 col mobile, 2 cols tablet, 4 cols desktop) -->
+            <div class="stats-grid-responsive">
+                <div class="stat-card blue">
+                    <i class="fas fa-file-alt stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ total_files }}</div>
+                        <div class="stat-label">Total Files</div>
+                    </div>
+                </div>
+
+                <div class="stat-card orange">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ total_students }}</div>
+                        <div class="stat-label">Students</div>
+                    </div>
+                </div>
+
+                <div class="stat-card green">
+                    <i class="fas fa-clock stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ pending_count }}</div>
+                        <div class="stat-label">Pending Grading</div>
+                    </div>
+                </div>
+
+                <div class="stat-card red">
+                    <i class="fas fa-exclamation-triangle stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ alert_count }}</div>
+                        <div class="stat-label">Plagiarism Alerts</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Course Filter Tabs -->
+            {% if courses %}
+            <div style="margin-bottom: 20px;">
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px;">
+                    <button onclick="filterByCourse('all')" class="course-filter-btn active" data-course="all" style="padding: 10px 20px; background: rgba(59, 130, 246, 0.2); border: 2px solid rgba(59, 130, 246, 0.5); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                        📚 All Courses ({{ assignments|length }})
+                    </button>
+                    {% for course in courses %}
+                        <button onclick="filterByCourse({{ course.id }})" class="course-filter-btn" data-course="{{ course.id }}" style="padding: 10px 20px; background: rgba(255, 255, 255, 0.05); border: 2px solid rgba(255, 255, 255, 0.2); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                            📖 {{ course.name }} ({{ course_counts[course.id] if course.id in course_counts else 0 }})
+                        </button>
+                    {% endfor %}
+                    <button onclick="filterByCourse('unassigned')" class="course-filter-btn" data-course="unassigned" style="padding: 10px 20px; background: rgba(245, 158, 11, 0.2); border: 2px solid rgba(245, 158, 11, 0.5); color: white; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s;">
+                        ⚠️ No Course ({{ unassigned_count }})
+                    </button>
+                </div>
+                
+                <!-- Download by Course Buttons -->
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    {% for course in courses %}
+                        {% if course.id in course_counts and course_counts[course.id] > 0 %}
+                        <a href="{{ url_for('main.download_by_course', course_id=course.id) }}" class="btn-download-all" style="font-size: 13px; padding: 8px 16px;">
+                            📥 Download {{ course.name }}
+                        </a>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Data Table -->
+            <div class="table-card">
+                <h2>📋 Student Submissions</h2>
+                {% if assignments %}
+                    <div class="table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Course</th>
+                                    <th>Filename</th>
+                                    <th>Submission Date</th>
+                                    <th>Similarity Score</th>
+                                    <th>Grade Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in assignments %}
+                                <tr class="assignment-row" data-course-id="{{ assignment.course_id if assignment.course_id else 'unassigned' }}">
+                                    <td>{{ assignment.user.username }}</td>
+                                    <td>
+                                        {% if assignment.course %}
+                                            <span style="padding: 4px 8px; background: rgba(59, 130, 246, 0.2); border-radius: 6px; font-size: 12px; color: #3b82f6;">
+                                                {{ assignment.course.name }}
+                                            </span>
+                                        {% else %}
+                                            <span style="padding: 4px 8px; background: rgba(245, 158, 11, 0.2); border-radius: 6px; font-size: 12px; color: #f59e0b;">
+                                                No Course
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ assignment.filename }}</td>
+                                    <td>{{ assignment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        {% if assignment.similarity_score and assignment.similarity_score > 0 %}
+                                            <a href="{{ url_for('main.view_report', assignment_id=assignment.id) }}" target="_blank" style="text-decoration: none;" title="View Evidence Report">
+                                                {% if assignment.similarity_score > 80 %}
+                                                    <span class="similarity-badge similarity-high">{{ "%.1f"|format(assignment.similarity_score) }}% 🔍</span>
+                                                {% elif assignment.similarity_score > 50 %}
+                                                    <span class="similarity-badge similarity-medium">{{ "%.1f"|format(assignment.similarity_score) }}% 🔍</span>
+                                                {% else %}
+                                                    <span class="similarity-badge similarity-low">{{ "%.1f"|format(assignment.similarity_score) }}% 🔍</span>
+                                                {% endif %}
+                                            </a>
+                                        {% elif assignment.similarity_score == 0 %}
+                                            <span class="similarity-badge similarity-low">0.0%</span>
+                                        {% else %}
+                                            <span style="color: rgba(255, 255, 255, 0.6);">N/A</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if assignment.grade %}
+                                            <span class="grade-badge grade-complete">{{ assignment.grade }}</span>
+                                        {% else %}
+                                            <span class="grade-badge grade-pending">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{{ url_for('main.download_file', assignment_id=assignment.id) }}" class="btn btn-download">Download</a>
+                                            <a href="{{ url_for('main.preview_file', assignment_id=assignment.id) }}" class="btn btn-preview" target="_blank">Preview</a>
+                                            <a href="{{ url_for('main.grading_room', assignment_id=assignment.id) }}" class="btn btn-grade">Grade</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No submissions yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Grading Center View -->
+        <div id="gradingCenterView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">📝 Grading Center</h1>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">
+                        {{ assignments|selectattr('grade', 'none')|list|length }} ungraded assignments
+                    </span>
+                    {% if assignments|selectattr('grade', 'none')|list|length > 0 %}
+                    <a href="{{ url_for('main.grading_room', assignment_id=(assignments|selectattr('grade', 'none')|list|first).id) }}" class="btn-download-all">
+                        🚀 Start Speed Grading
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Ungraded Assignments -->
+            <div class="table-card">
+                <h2>Ungraded Assignments</h2>
+                {% set ungraded = assignments|selectattr('grade', 'none')|list %}
+                {% if ungraded %}
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Filename</th>
+                                <th>Course</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in ungraded %}
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 10px;">
+                                        <div style="width: 35px; height: 35px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: white;">
+                                            {{ assignment.user.avatar_initials }}
+                                        </div>
+                                        <div>
+                                            <div style="color: white; font-weight: 500;">{{ assignment.user.username }}</div>
+                                            <div style="color: rgba(255, 255, 255, 0.6); font-size: 12px;">{{ assignment.user.email }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ assignment.filename }}</td>
+                                <td>
+                                    {% if assignment.course %}
+                                        {{ assignment.course.name }}
+                                    {% else %}
+                                        <span style="color: rgba(255, 255, 255, 0.5);">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ assignment.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('main.grading_room', assignment_id=assignment.id) }}" class="btn btn-grade">
+                                            <i class="fas fa-pen-fancy"></i> Grade Now
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 60px 20px; color: rgba(255, 255, 255, 0.6);">
+                    <i class="fas fa-check-circle" style="font-size: 64px; margin-bottom: 20px; color: rgba(16, 185, 129, 0.5);"></i>
+                    <h3 style="color: white; margin-bottom: 10px;">All Caught Up!</h3>
+                    <p>No ungraded assignments at the moment.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Recently Graded -->
+            <div class="table-card" style="margin-top: 30px;">
+                <h2>Recently Graded</h2>
+                {% set graded = assignments|selectattr('grade')|list|sort(attribute='created_at', reverse=true) %}
+                {% if graded %}
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Filename</th>
+                                <th>Grade</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in graded[:10] %}
+                            <tr>
+                                <td>{{ assignment.user.username }}</td>
+                                <td>{{ assignment.filename }}</td>
+                                <td>
+                                    <span class="grade-badge grade-complete">{{ assignment.grade }}</span>
+                                </td>
+                                <td>{{ assignment.created_at.strftime('%b %d, %Y') }}</td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <a href="{{ url_for('main.preview_file', assignment_id=assignment.id) }}" class="btn btn-preview" target="_blank">View</a>
+                                        <a href="{{ url_for('main.grading_room', assignment_id=assignment.id) }}" class="btn btn-grade">Re-grade</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div style="text-align: center; padding: 40px 20px; color: rgba(255, 255, 255, 0.5);">
+                    <p>No graded assignments yet.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+   
+     <!-- Broadcasts View -->
+        <div id="broadcastsView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">📢 Broadcasts</h1>
+            </div>
+
+            <div class="table-card" style="margin-bottom: 20px;">
+                <h2>Post New Announcement</h2>
+                <form method="POST" action="{{ url_for('main.post_broadcast') }}">
+                    <textarea 
+                        name="message" 
+                        placeholder="Type your announcement to all students..." 
+                        rows="4" 
+                        maxlength="500" 
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 15px;"
+                    ></textarea>
+                    <button type="submit" class="btn-download-all" style="width: 100%;">
+                        Broadcast to All Students
+                    </button>
+                </form>
+            </div>
+
+            {% if broadcast %}
+            <div class="table-card">
+                <h2>Latest Broadcast</h2>
+                <div style="padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; border-left: 3px solid rgba(251, 191, 36, 0.8);">
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px; margin-bottom: 8px;">
+                        Posted by {{ broadcast.user.username }} on {{ broadcast.timestamp.strftime('%B %d, %Y at %H:%M') }}
+                    </div>
+                    <div style="color: white; font-size: 15px; line-height: 1.6;">{{ broadcast.message }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Slide Bank View -->
+        <div id="slideBankView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">📚 Slide Bank</h1>
+            </div>
+
+            <div class="table-card" style="margin-bottom: 20px;">
+                <h2>Upload Lecture Slides</h2>
+                <form method="POST" action="{{ url_for('main.upload_slide') }}" enctype="multipart/form-data">
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: white; display: block; margin-bottom: 5px; font-size: 14px;">Title *</label>
+                        <input type="text" name="title" placeholder="e.g., Week 1 - Introduction to Python" required
+                            style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: white; display: block; margin-bottom: 5px; font-size: 14px;">Description (Optional)</label>
+                        <textarea name="description" rows="2" placeholder="Brief description of the slides..."
+                            style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.1); color: white; font-size: 14px; resize: vertical;"></textarea>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <label style="color: white; display: block; margin-bottom: 5px; font-size: 14px;">File *</label>
+                        <input type="file" name="file" accept=".pdf,.ppt,.pptx" required
+                            style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                    </div>
+                    <button type="submit" class="btn-download-all" style="width: 100%;">
+                        Upload Slide
+                    </button>
+                </form>
+            </div>
+
+            {% if courses %}
+                {% for course in courses %}
+                <div class="table-card" style="margin-bottom: 20px;">
+                    <h2><i class="fas fa-book"></i> {{ course.name }}</h2>
+                    {% set course_resources = course.resources|selectattr('category', 'equalto', 'Lecture Slides')|list %}
+                    {% if course_resources %}
+                        <div style="display: grid; gap: 15px;">
+                            {% for slide in course_resources %}
+                            <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; border-left: 3px solid rgba(59, 130, 246, 0.8);">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div style="flex: 1;">
+                                        <h3 style="color: white; font-size: 16px; margin-bottom: 5px;">📄 {{ slide.title }}</h3>
+                                        <p style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">
+                                            Uploaded by {{ slide.uploader.username }} on {{ slide.created_at.strftime('%B %d, %Y') }}
+                                        </p>
+                                        {% if slide.description %}
+                                        <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 8px;">{{ slide.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="{{ url_for('main.download_slide', slide_id=slide.id) }}" class="btn btn-download">Download</a>
+                                        <form method="POST" action="{{ url_for('main.delete_slide', slide_id=slide.id) }}" style="display: inline;" onsubmit="return confirm('Delete this slide?');">
+                                            <button type="submit" class="btn" style="background: rgba(239, 68, 68, 0.3); border: 1px solid rgba(239, 68, 68, 0.5); color: white;">Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 30px; color: rgba(255, 255, 255, 0.5);">
+                            <i class="fas fa-folder-open" style="font-size: 36px; margin-bottom: 10px; opacity: 0.5;"></i>
+                            <p>No slides yet for this course.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="table-card">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open" style="font-size: 48px; color: rgba(255,255,255,0.3); margin-bottom: 15px;"></i>
+                        <p>No courses available yet.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Settings View -->
+        <div id="settingsView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">⚙️ Settings</h1>
+            </div>
+
+            <div class="table-card">
+                <h2>Profile Settings</h2>
+                <div style="display: grid; gap: 15px;">
+                    <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin-bottom: 5px;">Username</div>
+                        <div style="color: white; font-size: 15px; font-weight: 600;">{{ current_user.username }}</div>
+                    </div>
+                    <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin-bottom: 5px;">Email</div>
+                        <div style="color: white; font-size: 15px; font-weight: 600;">{{ current_user.email }}</div>
+                    </div>
+                    <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px;">
+                        <div style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin-bottom: 5px;">Role</div>
+                        <div style="color: white; font-size: 15px; font-weight: 600;">{{ current_user.role }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Filter assignments by course
+        function filterByCourse(courseId) {
+            const rows = document.querySelectorAll('.assignment-row');
+            const buttons = document.querySelectorAll('.course-filter-btn');
+            
+            // Update button states
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.background = 'rgba(255, 255, 255, 0.05)';
+                btn.style.borderColor = 'rgba(255, 255, 255, 0.2)';
+                
+                if (btn.dataset.course == courseId) {
+                    btn.classList.add('active');
+                    if (courseId === 'all') {
+                        btn.style.background = 'rgba(59, 130, 246, 0.2)';
+                        btn.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                    } else if (courseId === 'unassigned') {
+                        btn.style.background = 'rgba(245, 158, 11, 0.2)';
+                        btn.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+                    } else {
+                        btn.style.background = 'rgba(16, 185, 129, 0.2)';
+                        btn.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+                    }
+                }
+            });
+            
+            // Filter rows
+            rows.forEach(row => {
+                if (courseId === 'all') {
+                    row.style.display = '';
+                } else {
+                    if (row.dataset.courseId == courseId) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

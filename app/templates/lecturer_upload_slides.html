@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Slides - {{ course.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+    <!-- Mobile Top Bar -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="mobile-logo">
+            <span>Upload Slides</span>
+        </div>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-upload"></i> Upload Slides
+            </h1>
+            <p style="color: rgba(255, 255, 255, 0.8); margin-top: 10px;">
+                Course: <strong>{{ course.name }}</strong>
+            </p>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h2><i class="fas fa-file-upload"></i> Multiple Slide Upload</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.lecturer_upload_slides') }}" enctype="multipart/form-data" id="uploadForm">
+                    <!-- Slide Title -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="title" style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                            <i class="fas fa-heading"></i> Slide Set Title
+                        </label>
+                        <input type="text" id="title" name="title" value="Lecture Slides"
+                               placeholder="e.g., Week 5 Lecture, Data Structures Chapter 3"
+                               style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="description" style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                            <i class="fas fa-align-left"></i> Description (Optional)
+                        </label>
+                        <textarea id="description" name="description" rows="3"
+                                  placeholder="Brief description of the slides content..."
+                                  style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- File Upload Zone -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                            <i class="fas fa-files"></i> Select Multiple Files
+                        </label>
+                        
+                        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('slidesInput').click()" 
+                             style="border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 12px; padding: 40px 20px; text-align: center; cursor: pointer; background: rgba(255, 255, 255, 0.05); transition: all 0.3s;">
+                            <div class="upload-icon" style="font-size: 48px; color: rgba(255, 255, 255, 0.6); margin-bottom: 15px;">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                            </div>
+                            <p style="color: white; font-size: 16px; margin-bottom: 8px; font-weight: 600;">
+                                Click to select multiple files or drag & drop
+                            </p>
+                            <p style="color: rgba(255, 255, 255, 0.7); font-size: 13px; margin-bottom: 15px;">
+                                Supported: PDF, PPT, PPTX, DOC, DOCX, TXT, JPG, PNG
+                            </p>
+                            <div id="fileList" style="margin-top: 15px;"></div>
+                        </div>
+                        
+                        <input type="file" id="slidesInput" name="slides" multiple accept=".pdf,.ppt,.pptx,.doc,.docx,.txt,.jpg,.jpeg,.png" style="display: none;">
+                    </div>
+
+                    <!-- File Preview -->
+                    <div id="filePreview" style="display: none; margin-bottom: 20px;">
+                        <h4 style="color: white; margin-bottom: 10px; font-size: 14px;">
+                            <i class="fas fa-list"></i> Selected Files:
+                        </h4>
+                        <div id="selectedFiles" style="background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 15px; max-height: 200px; overflow-y: auto;"></div>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #4ade80; margin-bottom: 10px; font-size: 14px;">
+                            <i class="fas fa-lightbulb"></i> Upload Tips:
+                        </h4>
+                        <ul style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin: 0; padding-left: 20px;">
+                            <li>You can select multiple files at once (Ctrl+Click or Cmd+Click)</li>
+                            <li>Files will be automatically approved and available to students</li>
+                            <li>Students will receive a notification about new slides</li>
+                            <li>Maximum file size: 50MB per file</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                        <a href="{{ url_for('main.lecturer_dashboard') }}" 
+                           style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" id="uploadBtn" disabled
+                                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; opacity: 0.5;">
+                            <i class="fas fa-upload"></i> Upload Slides
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const slidesInput = document.getElementById('slidesInput');
+        const uploadZone = document.getElementById('uploadZone');
+        const filePreview = document.getElementById('filePreview');
+        const selectedFiles = document.getElementById('selectedFiles');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        // Handle file selection
+        slidesInput.addEventListener('change', function() {
+            const files = Array.from(this.files);
+            updateFilePreview(files);
+        });
+
+        // Drag and drop functionality
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.borderColor = '#667eea';
+            this.style.background = 'rgba(102, 126, 234, 0.1)';
+        });
+
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            this.style.background = 'rgba(255, 255, 255, 0.05)';
+        });
+
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+            this.style.background = 'rgba(255, 255, 255, 0.05)';
+            
+            const files = Array.from(e.dataTransfer.files);
+            slidesInput.files = e.dataTransfer.files;
+            updateFilePreview(files);
+        });
+
+        function updateFilePreview(files) {
+            if (files.length === 0) {
+                filePreview.style.display = 'none';
+                uploadBtn.disabled = true;
+                uploadBtn.style.opacity = '0.5';
+                return;
+            }
+
+            filePreview.style.display = 'block';
+            uploadBtn.disabled = false;
+            uploadBtn.style.opacity = '1';
+
+            selectedFiles.innerHTML = '';
+            files.forEach((file, index) => {
+                const fileItem = document.createElement('div');
+                fileItem.style.cssText = 'display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(255, 255, 255, 0.1); border-radius: 6px; margin-bottom: 8px;';
+                
+                const fileInfo = document.createElement('div');
+                fileInfo.style.cssText = 'display: flex; align-items: center; gap: 10px; flex: 1;';
+                
+                const fileIcon = getFileIcon(file.name);
+                const fileName = file.name.length > 40 ? file.name.substring(0, 40) + '...' : file.name;
+                const fileSize = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+                
+                fileInfo.innerHTML = `
+                    <i class="fas ${fileIcon}" style="color: #60a5fa;"></i>
+                    <div>
+                        <div style="color: white; font-size: 13px; font-weight: 600;">${fileName}</div>
+                        <div style="color: rgba(255, 255, 255, 0.6); font-size: 11px;">${fileSize}</div>
+                    </div>
+                `;
+                
+                fileItem.appendChild(fileInfo);
+                selectedFiles.appendChild(fileItem);
+            });
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            switch(ext) {
+                case 'pdf': return 'fa-file-pdf';
+                case 'ppt':
+                case 'pptx': return 'fa-file-powerpoint';
+                case 'doc':
+                case 'docx': return 'fa-file-word';
+                case 'txt': return 'fa-file-alt';
+                case 'jpg':
+                case 'jpeg':
+                case 'png': return 'fa-file-image';
+                default: return 'fa-file';
+            }
+        }
+
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-msg').forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-10px)';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

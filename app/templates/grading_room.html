@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speed Grading - {{ assignment.filename }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .rubric-input {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 10px;
+            border-radius: 8px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+        
+        .rubric-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .rubric-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 24px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .student-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: bold;
+            color: white;
+            margin: 0 auto 15px;
+            box-shadow: 0 4px 12px rgba(251, 191, 36, 0.4);
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+            transition: width 0.3s;
+        }
+        
+        iframe {
+            border: none;
+            background: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="h-screen grid grid-cols-3">
+        <!-- Left Column: Document Viewer (2/3 width) -->
+        <div class="col-span-2 bg-gray-100 relative">
+            <!-- Top Bar -->
+            <div class="absolute top-0 left-0 right-0 bg-white shadow-md z-10 px-6 py-4 flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <a href="{{ url_for('main.admin_dashboard') }}" class="text-gray-600 hover:text-gray-900 transition">
+                        <i class="fas fa-arrow-left text-xl"></i>
+                    </a>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-800">{{ assignment.filename }}</h2>
+                        <p class="text-sm text-gray-500">Submitted {{ assignment.created_at.strftime('%B %d, %Y at %H:%M') }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-gray-600">{{ ungraded_count }} ungraded</span>
+                    <a href="{{ url_for('main.download_file', assignment_id=assignment.id) }}" class="btn-secondary text-sm">
+                        <i class="fas fa-download"></i> Download
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Document Preview -->
+            <div class="h-full pt-20">
+                <iframe src="{{ url_for('main.preview_file', assignment_id=assignment.id) }}" class="w-full h-full"></iframe>
+            </div>
+        </div>
+        
+        <!-- Right Column: Grading Controls (1/3 width) -->
+        <div class="glass-panel overflow-y-auto p-6">
+            <!-- Progress Bar -->
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: 0%;" id="progressBar"></div>
+            </div>
+            
+            <!-- Student Info -->
+            <div class="text-center mb-6">
+                <div class="student-avatar">
+                    {{ assignment.user.avatar_initials }}
+                </div>
+                <h3 class="text-xl font-bold text-white mb-1">{{ assignment.user.username }}</h3>
+                <p class="text-sm text-gray-300">{{ assignment.user.email }}</p>
+                {% if assignment.user.class_group %}
+                <p class="text-xs text-gray-400 mt-1">{{ assignment.user.class_group.name }}</p>
+                {% endif %}
+            </div>
+            
+            <!-- Grading Form -->
+            <form method="POST" action="{{ url_for('main.submit_grade', assignment_id=assignment.id) }}" id="gradingForm">
+                <!-- Rubric Section -->
+                <div class="mb-6">
+                    <h4 class="text-white font-semibold mb-3 flex items-center gap-2">
+                        <i class="fas fa-clipboard-list"></i> Rubric Breakdown
+                    </h4>
+                    
+                    <div class="space-y-3">
+                        <!-- Grammar -->
+                        <div>
+                            <label class="text-sm text-gray-300 mb-1 block">Grammar & Style</label>
+                            <div class="flex gap-2">
+                                <input type="number" name="grammar_score" id="grammarScore" min="0" max="30" placeholder="0-30" class="rubric-input flex-1" oninput="calculateTotal()">
+                                <span class="text-white self-center">/30</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Logic -->
+                        <div>
+                            <label class="text-sm text-gray-300 mb-1 block">Logic & Structure</label>
+                            <div class="flex gap-2">
+                                <input type="number" name="logic_score" id="logicScore" min="0" max="40" placeholder="0-40" class="rubric-input flex-1" oninput="calculateTotal()">
+                                <span class="text-white self-center">/40</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Research -->
+                        <div>
+                            <label class="text-sm text-gray-300 mb-1 block">Research & Content</label>
+                            <div class="flex gap-2">
+                                <input type="number" name="research_score" id="researchScore" min="0" max="30" placeholder="0-30" class="rubric-input flex-1" oninput="calculateTotal()">
+                                <span class="text-white self-center">/30</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Total Score -->
+                <div class="mb-6 glass-panel p-4 rounded-lg">
+                    <label class="text-sm text-gray-300 mb-2 block text-center">Total Score</label>
+                    <div class="score-display" id="totalScore">0</div>
+                    <div class="text-center text-sm text-gray-300">out of 100</div>
+                    <input type="hidden" name="grade" id="gradeInput" value="0">
+                </div>
+                
+                <!-- Feedback -->
+                <div class="mb-6">
+                    <label class="text-white font-semibold mb-2 block flex items-center gap-2">
+                        <i class="fas fa-comment-dots"></i> Feedback
+                    </label>
+                    <textarea name="feedback" rows="6" placeholder="Provide constructive feedback for the student..." class="rubric-input resize-none"></textarea>
+                </div>
+                
+                <!-- Actions -->
+                <div class="space-y-3">
+                    {% if next_assignment %}
+                    <button type="submit" class="btn-primary w-full" onclick="return confirmGrade()">
+                        <i class="fas fa-check-circle"></i> Save & Next Student
+                    </button>
+                    {% else %}
+                    <button type="submit" class="btn-primary w-full" onclick="return confirmGrade()">
+                        <i class="fas fa-check-circle"></i> Save Grade
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('main.admin_dashboard') }}" class="btn-secondary w-full block text-center">
+                        <i class="fas fa-arrow-left"></i> Back to Dashboard
+                    </a>
+                </div>
+                
+                <!-- Quick Stats -->
+                <div class="mt-6 pt-6 border-t border-white border-opacity-20">
+                    <div class="grid grid-cols-2 gap-3 text-center">
+                        <div class="glass-panel p-3 rounded-lg">
+                            <div class="text-2xl font-bold text-white">{{ ungraded_count }}</div>
+                            <div class="text-xs text-gray-300">Remaining</div>
+                        </div>
+                        <div class="glass-panel p-3 rounded-lg">
+                            <div class="text-2xl font-bold text-white" id="avgTime">--</div>
+                            <div class="text-xs text-gray-300">Avg Time</div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Keyboard Shortcuts Info -->
+            <div class="mt-6 p-4 bg-black bg-opacity-20 rounded-lg">
+                <h5 class="text-xs font-semibold text-gray-300 mb-2">⌨️ Keyboard Shortcuts</h5>
+                <div class="text-xs text-gray-400 space-y-1">
+                    <div><kbd class="bg-white bg-opacity-20 px-2 py-1 rounded">Ctrl+Enter</kbd> Save & Next</div>
+                    <div><kbd class="bg-white bg-opacity-20 px-2 py-1 rounded">Esc</kbd> Back to Dashboard</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Calculate total score from rubric
+        function calculateTotal() {
+            const grammar = parseInt(document.getElementById('grammarScore').value) || 0;
+            const logic = parseInt(document.getElementById('logicScore').value) || 0;
+            const research = parseInt(document.getElementById('researchScore').value) || 0;
+            
+            const total = grammar + logic + research;
+            document.getElementById('totalScore').textContent = total;
+            document.getElementById('gradeInput').value = total;
+            
+            // Update progress bar
+            const progress = (total / 100) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+        }
+        
+        function confirmGrade() {
+            const total = parseInt(document.getElementById('gradeInput').value);
+            if (total === 0) {
+                return confirm('Total score is 0. Are you sure you want to submit this grade?');
+            }
+            return true;
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+Enter to submit
+            if (e.ctrlKey && e.key === 'Enter') {
+                e.preventDefault();
+                if (confirmGrade()) {
+                    document.getElementById('gradingForm').submit();
+                }
+            }
+            
+            // Esc to go back
+            if (e.key === 'Escape') {
+                window.location.href = "{{ url_for('main.admin_dashboard') }}";
+            }
+        });
+        
+        // Track grading time
+        let startTime = Date.now();
+        window.addEventListener('beforeunload', function() {
+            const duration = Math.round((Date.now() - startTime) / 1000);
+            localStorage.setItem('lastGradingTime', duration);
+        });
+        
+        // Display average time
+        const lastTime = localStorage.getItem('lastGradingTime');
+        if (lastTime) {
+            const minutes = Math.floor(lastTime / 60);
+            const seconds = lastTime % 60;
+            document.getElementById('avgTime').textContent = minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+        }
+    </script>
+</body>
+</html>

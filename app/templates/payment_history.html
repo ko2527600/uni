@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment History - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+    <!-- Mobile Top Bar -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-logo">
+            <img src="/static/logo.png" alt="UniPortal">
+            <span>UniPortal</span>
+        </div>
+        <div class="mobile-avatar">{{ current_user.avatar_initials }}</div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <img src="/static/logo.png" alt="UniPortal Logo">
+                <span>UniPortal</span>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('main.dashboard') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-home"></i></span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('main.subscription') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-gem"></i></span>
+                <span>Subscription</span>
+            </a>
+            <a href="{{ url_for('main.payment_history') }}" class="nav-item active">
+                <span class="icon"><i class="fas fa-receipt"></i></span>
+                <span>Payment History</span>
+            </a>
+            <a href="{{ url_for('main.analytics') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                <span>Analytics</span>
+            </a>
+            <a href="{{ url_for('main.logout') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title"><i class="fas fa-receipt"></i> Payment History</h1>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid-responsive">
+            <div class="stat-card green">
+                <i class="fas fa-money-bill-wave stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-value">GH₵{{ "%.2f"|format(total_spent) }}</div>
+                    <div class="stat-label">Total Spent</div>
+                </div>
+            </div>
+
+            <div class="stat-card blue">
+                <i class="fas fa-check-circle stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-value">{{ successful_payments }}</div>
+                    <div class="stat-label">Successful</div>
+                </div>
+            </div>
+
+            <div class="stat-card red">
+                <i class="fas fa-times-circle stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-value">{{ failed_payments }}</div>
+                    <div class="stat-label">Failed</div>
+                </div>
+            </div>
+
+            <div class="stat-card orange">
+                <i class="fas fa-history stat-icon"></i>
+                <div class="stat-content">
+                    <div class="stat-value">{{ payments|length }}</div>
+                    <div class="stat-label">Total Transactions</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payment History Table -->
+        <div class="table-card">
+            <h2>All Transactions</h2>
+            {% if payments %}
+                <div class="table-wrapper">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Reference</th>
+                                <th>Plan</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                            <tr>
+                                <td>{{ payment.created_at.strftime('%b %d, %Y %H:%M') }}</td>
+                                <td><code style="font-size: 12px;">{{ payment.reference }}</code></td>
+                                <td>
+                                    {% if payment.plan_type == 'semester' %}
+                                        <span style="color: #3b82f6;">📚 Semester</span>
+                                    {% elif payment.plan_type == 'yearly' %}
+                                        <span style="color: #8b5cf6;">🎓 Yearly</span>
+                                    {% else %}
+                                        <span style="color: #10b981;">🏆 {{ payment.plan_type.title() }}</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>GH₵{{ "%.2f"|format(payment.amount) }}</strong></td>
+                                <td>
+                                    {% if payment.status == 'success' %}
+                                        <span class="grade-badge grade-complete">✓ Success</span>
+                                    {% elif payment.status == 'failed' %}
+                                        <span class="grade-badge" style="background: rgba(239, 68, 68, 0.2); color: #ef4444;">✗ Failed</span>
+                                    {% else %}
+                                        <span class="grade-badge grade-pending">⏳ Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if payment.status == 'success' %}
+                                        <button onclick="downloadReceipt('{{ payment.reference }}')" class="btn btn-download" style="font-size: 12px; padding: 6px 12px;">
+                                            <i class="fas fa-download"></i> Receipt
+                                        </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-receipt" style="font-size: 48px; color: rgba(255,255,255,0.3); margin-bottom: 15px;"></i>
+                    <p>No payment history yet.</p>
+                    <a href="{{ url_for('main.subscription') }}" class="btn-download-all" style="margin-top: 15px;">
+                        View Subscription Plans
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        function downloadReceipt(reference) {
+            alert('Receipt download for ' + reference + '\n\nThis feature will generate a PDF receipt with payment details.');
+            // TODO: Implement PDF receipt generation
+        }
+    </script>
+</body>
+</html>

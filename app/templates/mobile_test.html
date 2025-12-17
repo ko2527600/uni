@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Test - UniPortal</title>
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.min.css') }}" onerror="this.onerror=null; this.href='{{ url_for('static', filename='css/icons.css') }}';">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Device-specific CSS -->
+    {% if is_mobile %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_force.css') }}">
+    {% endif %}
+</head>
+<body class="dashboard-page">
+    <!-- Mobile Top Bar -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" onclick="alert('Mobile menu works!')">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-logo">
+            <img src="/static/logo.png" alt="UniPortal">
+            <span>Mobile Test</span>
+        </div>
+        <div class="mobile-avatar">
+            MT
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Page Header -->
+        <div class="page-header">
+            <h1 class="page-title">📱 Mobile Layout Test</h1>
+        </div>
+
+        <!-- Device Info Card -->
+        <div class="glass-card">
+            <h2><i class="fas fa-mobile-alt"></i> Device Information</h2>
+            <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <p><strong>Device Type:</strong> {{ device_type }}</p>
+                <p><strong>Is Mobile:</strong> {{ is_mobile }}</p>
+                <p><strong>Is Tablet:</strong> {{ is_tablet }}</p>
+                <p><strong>Is Desktop:</strong> {{ is_desktop }}</p>
+                <p><strong>Screen Width:</strong> <span id="screenWidth"></span>px</p>
+                <p><strong>Screen Height:</strong> <span id="screenHeight"></span>px</p>
+            </div>
+        </div>
+
+        <!-- Stats Grid Test -->
+        <div class="stats-grid">
+            <div class="stat-card blue">
+                <div class="stat-content">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">Full Width Test</div>
+                </div>
+            </div>
+            <div class="stat-card green">
+                <div class="stat-content">
+                    <div class="stat-value">✓</div>
+                    <div class="stat-label">Mobile Optimized</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Two Column Grid Test -->
+        <div class="two-column-grid">
+            <div class="glass-card">
+                <h3><i class="fas fa-check"></i> Left Card</h3>
+                <p>This card should use full width on mobile devices.</p>
+                <button class="btn btn-primary">
+                    <i class="fas fa-touch"></i> Touch Test
+                </button>
+            </div>
+            <div class="glass-card">
+                <h3><i class="fas fa-check"></i> Right Card</h3>
+                <p>This card should stack below the left card on mobile.</p>
+                <button class="btn btn-secondary">
+                    <i class="fas fa-mobile-alt"></i> Mobile Ready
+                </button>
+            </div>
+        </div>
+
+        <!-- Form Test -->
+        <div class="glass-card">
+            <h3><i class="fas fa-edit"></i> Form Test</h3>
+            <form>
+                <div class="form-group">
+                    <label style="color: white; display: block; margin-bottom: 8px;">
+                        <i class="fas fa-user"></i> Full Name
+                    </label>
+                    <input type="text" placeholder="Enter your name" style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 16px;">
+                </div>
+                <div class="form-group">
+                    <label style="color: white; display: block; margin-bottom: 8px;">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input type="email" placeholder="Enter your email" style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 16px;">
+                </div>
+                <button type="button" class="btn btn-primary" onclick="alert('Form works on mobile!')">
+                    <i class="fas fa-paper-plane"></i> Submit Test
+                </button>
+            </form>
+        </div>
+
+        <!-- Table Test -->
+        <div class="table-card">
+            <h3><i class="fas fa-table"></i> Table Test</h3>
+            <div class="table-responsive">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Mobile Layout</td>
+                            <td><span class="badge badge-success">Working</span></td>
+                            <td><button class="btn btn-primary">Test</button></td>
+                        </tr>
+                        <tr>
+                            <td>Touch Targets</td>
+                            <td><span class="badge badge-success">Optimized</span></td>
+                            <td><button class="btn btn-secondary">Check</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Network Test -->
+        <div class="glass-card">
+            <h3><i class="fas fa-wifi"></i> Network Test</h3>
+            <p>If you can see this page, your mobile network connection is working!</p>
+            <div style="background: rgba(34, 197, 94, 0.2); padding: 15px; border-radius: 8px; margin-top: 15px;">
+                <p><strong>✅ Success!</strong> Your phone can access the UniPortal server.</p>
+                <p><strong>URL:</strong> <span id="currentUrl"></span></p>
+            </div>
+            <button class="btn btn-primary" onclick="testGeolocation()">
+                <i class="fas fa-map-marker-alt"></i> Test Geolocation
+            </button>
+            <button class="btn btn-secondary" onclick="debugScrolling()" style="margin-top: 10px;">
+                <i class="fas fa-bug"></i> Debug Scrolling
+            </button>
+            <button class="btn btn-secondary" onclick="forceScroll()" style="margin-top: 10px;">
+                <i class="fas fa-arrows-alt-v"></i> Force Enable Scroll
+            </button>
+            <div id="geoResult" style="margin-top: 15px; padding: 10px; border-radius: 8px; display: none;"></div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/mobile.js') }}"></script>
+    <script>
+        // Update screen dimensions
+        function updateScreenInfo() {
+            document.getElementById('screenWidth').textContent = window.innerWidth;
+            document.getElementById('screenHeight').textContent = window.innerHeight;
+            document.getElementById('currentUrl').textContent = window.location.href;
+        }
+        
+        // Force enable scrolling
+        function forceScroll() {
+            const html = document.documentElement;
+            const body = document.body;
+            const mainContent = document.querySelector('.main-content');
+            
+            // Nuclear option - force everything to be scrollable
+            html.style.cssText = 'overflow: auto !important; overflow-y: auto !important; height: auto !important;';
+            body.style.cssText = 'overflow: auto !important; overflow-y: auto !important; height: auto !important; min-height: 100vh !important; position: static !important;';
+            
+            if (mainContent) {
+                mainContent.style.cssText = 'overflow: visible !important; height: auto !important; min-height: 100vh !important; position: static !important;';
+            }
+            
+            // Add extra content to force scrolling
+            const extraDiv = document.createElement('div');
+            extraDiv.style.height = '200vh';
+            extraDiv.style.width = '100%';
+            extraDiv.style.background = 'linear-gradient(to bottom, transparent, rgba(255,255,255,0.1))';
+            extraDiv.innerHTML = '<div style="padding: 50px; text-align: center; color: white;"><h2>Scroll Test Content</h2><p>If you can see this, scrolling is working!</p></div>';
+            document.body.appendChild(extraDiv);
+            
+            alert('Scrolling force-enabled! Try scrolling now.');
+        }
+        
+        // Test geolocation
+        function testGeolocation() {
+            const resultDiv = document.getElementById('geoResult');
+            resultDiv.style.display = 'block';
+            resultDiv.style.background = 'rgba(59, 130, 246, 0.2)';
+            resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing geolocation...';
+            
+            if (!navigator.geolocation) {
+                resultDiv.style.background = 'rgba(239, 68, 68, 0.2)';
+                resultDiv.innerHTML = '❌ Geolocation not supported';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    resultDiv.style.background = 'rgba(34, 197, 94, 0.2)';
+                    resultDiv.innerHTML = `
+                        ✅ Geolocation works!<br>
+                        Latitude: ${position.coords.latitude.toFixed(6)}<br>
+                        Longitude: ${position.coords.longitude.toFixed(6)}<br>
+                        Accuracy: ${position.coords.accuracy}m
+                    `;
+                },
+                function(error) {
+                    resultDiv.style.background = 'rgba(239, 68, 68, 0.2)';
+                    let message = '❌ Geolocation failed: ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            message += 'Permission denied';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            message += 'Position unavailable';
+                            break;
+                        case error.TIMEOUT:
+                            message += 'Request timeout';
+                            break;
+                        default:
+                            message += 'Unknown error';
+                    }
+                    resultDiv.innerHTML = message;
+                }
+            );
+        }
+        
+        // Initialize
+        updateScreenInfo();
+        window.addEventListener('resize', updateScreenInfo);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(updateScreenInfo, 500);
+        });
+    </script>
+</body>
+</html>

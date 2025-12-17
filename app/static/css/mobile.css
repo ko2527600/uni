@@ -1,0 +1,732 @@
+/* 
+UniPortal Mobile-Specific Styles
+Optimized for mobile devices and small screens
+*/
+
+/* ========== MOBILE-FIRST APPROACH ========== */
+
+/* CSS Custom Properties for mobile viewport */
+:root {
+    --vh: 1vh;
+}
+
+/* Use custom viewport height on mobile */
+@media (max-width: 768px) {
+    html {
+        height: auto !important;
+        min-height: calc(var(--vh, 1vh) * 100) !important;
+    }
+    
+    /* Force scrollable content by ensuring minimum height */
+    body.dashboard-page .main-content::after {
+        content: '';
+        display: block;
+        height: 1px;
+        width: 100%;
+        margin-top: 20px;
+    }
+}
+
+/* Mobile Login Page Improvements */
+@media (max-width: 768px) {
+    body {
+        padding: 5px !important;
+        min-height: 100vh !important;
+        min-height: -webkit-fill-available !important;
+    }
+    
+    .login-container {
+        grid-template-columns: 1fr !important;
+        max-width: 95vw !important;
+        width: 100% !important;
+        margin: 0 auto !important;
+        border-radius: 15px !important;
+        overflow: hidden !important;
+    }
+    
+    .brand-section {
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+        padding: 1.5rem !important;
+    }
+    
+    .brand-title {
+        font-size: 1.8rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .brand-tagline {
+        font-size: 1rem !important;
+        margin-bottom: 1rem !important;
+    }
+    
+    .brand-logo {
+        width: 64px !important;
+        height: 64px !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .features-list {
+        display: none !important;
+    }
+    
+    .login-section {
+        padding: 1.5rem !important;
+    }
+    
+    .login-title {
+        font-size: 1.5rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .login-subtitle {
+        font-size: 0.875rem !important;
+    }
+    
+    .login-header {
+        margin-bottom: 1.5rem !important;
+    }
+    
+    .form-group {
+        margin-bottom: 1.25rem !important;
+    }
+    
+    .form-input {
+        padding: 0.875rem 1rem !important;
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        border-radius: 8px !important;
+    }
+    
+    .login-button {
+        padding: 0.875rem 1.5rem !important;
+        font-size: 1rem !important;
+        border-radius: 8px !important;
+    }
+    
+    .register-link {
+        margin-top: 1.25rem !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .flash-messages {
+        margin-bottom: 1rem !important;
+    }
+    
+    .flash-message {
+        padding: 0.75rem 1rem !important;
+        font-size: 0.875rem !important;
+        border-radius: 8px !important;
+    }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+    body {
+        padding: 2px !important;
+    }
+    
+    .login-container {
+        max-width: 98vw !important;
+        border-radius: 12px !important;
+    }
+    
+    .brand-section {
+        padding: 1rem !important;
+    }
+    
+    .brand-title {
+        font-size: 1.5rem !important;
+    }
+    
+    .brand-logo {
+        width: 48px !important;
+        height: 48px !important;
+    }
+    
+    .login-section {
+        padding: 1rem !important;
+    }
+    
+    .login-title {
+        font-size: 1.25rem !important;
+    }
+    
+    .form-input {
+        padding: 0.75rem !important;
+    }
+    
+    .login-button {
+        padding: 0.75rem 1rem !important;
+    }
+}
+
+/* Mobile landscape orientation */
+@media (max-width: 768px) and (orientation: landscape) {
+    body {
+        padding: 2px !important;
+    }
+    
+    .login-container {
+        max-height: 95vh !important;
+        overflow-y: auto !important;
+    }
+    
+    .brand-section {
+        padding: 0.75rem !important;
+    }
+    
+    .brand-title {
+        font-size: 1.25rem !important;
+        margin-bottom: 0.25rem !important;
+    }
+    
+    .brand-tagline {
+        font-size: 0.875rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .brand-logo {
+        width: 40px !important;
+        height: 40px !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .login-section {
+        padding: 0.75rem !important;
+    }
+    
+    .login-header {
+        margin-bottom: 1rem !important;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem !important;
+    }
+}
+
+/* Mobile Dashboard Improvements */
+@media (max-width: 768px) {
+    /* AGGRESSIVE OVERRIDE: Fix body and html for proper scrolling */
+    html {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        scroll-behavior: smooth !important;
+    }
+    
+    body {
+        overflow-x: hidden !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: static !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* CRITICAL: Override the main CSS dashboard-page rules */
+    body.dashboard-page {
+        overflow: visible !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        display: block !important;
+        flex-direction: unset !important;
+        position: static !important;
+        max-height: none !important;
+    }
+    
+    /* CRITICAL: Override main content height constraint */
+    body.dashboard-page .main-content {
+        height: auto !important;
+        min-height: calc(100vh - 60px) !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        position: static !important;
+        flex: unset !important;
+    }
+    
+    /* Ensure mobile top bar is always visible */
+    .mobile-top-bar {
+        display: flex !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        height: 60px !important;
+        z-index: 1000 !important;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3) !important;
+    }
+    
+    /* Adjust main content for mobile top bar */
+    body.dashboard-page .main-content {
+        padding-top: 75px !important;
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+        padding-bottom: 50px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: static !important;
+        z-index: auto !important;
+    }
+    
+    /* Hide desktop sidebar on mobile */
+    .sidebar {
+        display: none !important;
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 280px !important;
+        height: 100vh !important;
+        max-height: 100vh !important;
+        z-index: 1500 !important;
+        transform: translateX(-100%) !important;
+        transition: transform 0.3s ease !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Show sidebar when active */
+    .sidebar.active {
+        display: flex !important;
+        transform: translateX(0) !important;
+    }
+    
+    /* Mobile overlay when sidebar is open */
+    body.dashboard-page.menu-open::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1400;
+        opacity: 1;
+        pointer-events: auto;
+    }
+    
+    /* Prevent body scroll when menu is open, but allow main content scroll */
+    body.dashboard-page.menu-open {
+        overflow: hidden !important;
+    }
+    
+    body.dashboard-page.menu-open .main-content {
+        overflow-y: auto !important;
+        height: calc(100vh - 60px) !important;
+    }
+    
+    /* Mobile-optimized page titles */
+    .page-title {
+        font-size: 20px !important;
+        margin-bottom: 15px !important;
+        line-height: 1.2 !important;
+    }
+    
+    /* Mobile-optimized cards */
+    .glass-card,
+    .table-card {
+        margin-bottom: 15px !important;
+        padding: 15px !important;
+        border-radius: 12px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Mobile-optimized stats grid */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    .stat-card {
+        padding: 20px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .stat-value {
+        font-size: 28px !important;
+    }
+    
+    /* Mobile-optimized tables */
+    .table-responsive {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .data-table {
+        min-width: 500px !important;
+        font-size: 12px !important;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 8px 6px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* Mobile-optimized buttons */
+    .btn,
+    .btn-primary,
+    .btn-secondary {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        width: 100% !important;
+        margin-bottom: 10px !important;
+    }
+    
+    .action-buttons {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    /* Mobile-optimized forms */
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 16px !important; /* Prevents zoom on iOS */
+        padding: 12px !important;
+    }
+    
+    /* Mobile-optimized two-column grid */
+    .two-column-grid {
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    
+    /* Mobile-optimized upload zone */
+    .upload-zone {
+        padding: 30px 15px !important;
+        text-align: center !important;
+    }
+    
+    .upload-icon {
+        font-size: 32px !important;
+    }
+    
+    /* Mobile-optimized flash messages */
+    .flash-messages {
+        margin: 10px 0 !important;
+    }
+    
+    .flash-msg {
+        padding: 12px 15px !important;
+        font-size: 13px !important;
+        border-radius: 8px !important;
+    }
+}
+
+    /* Full width containers and grids */
+    .page-header,
+    .stats-grid,
+    .two-column-grid,
+    .glass-card,
+    .table-card,
+    .pricing-grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Remove any centering that might be applied */
+    .main-content > * {
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Ensure subscription cards use full width */
+    .pricing-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 15px 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Full width forms */
+    form {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* Full width inputs and selects */
+    input, select, textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Subscription page specific fixes */
+    .pricing-grid {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 15px !important;
+        width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    
+    /* Dashboard specific fixes */
+    .page-header {
+        text-align: left !important;
+        width: 100% !important;
+        margin-bottom: 20px !important;
+    }
+    
+    /* Remove any max-width constraints */
+    .container,
+    .main-container,
+    .content-wrapper {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Settings and Profile page specific fixes */
+    .settings-container,
+    .profile-container {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 10px !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+        height: auto !important;
+    }
+    
+    .login-container {
+        overflow-y: auto !important;
+        max-height: none !important;
+        height: auto !important;
+    }
+    
+    /* Fix for settings page specifically */
+    body.dashboard-page .settings-container {
+        padding: 75px 5px 20px 5px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+    
+    body.dashboard-page .settings-container .login-container {
+        margin: 0 !important;
+        padding: 15px !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* Extra small devices (phones in portrait) */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 15px !important;
+        border-radius: 12px !important;
+    }
+    
+    .logo h1 {
+        font-size: 20px !important;
+    }
+    
+    .logo img {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    
+    body.dashboard-page .main-content {
+        padding: 70px 3px 20px 3px !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: calc(100vh - 70px) !important;
+    }
+    
+    .page-title {
+        font-size: 18px !important;
+    }
+    
+    .glass-card,
+    .table-card {
+        padding: 12px !important;
+    }
+    
+    .stat-card {
+        padding: 15px !important;
+    }
+    
+    .stat-value {
+        font-size: 24px !important;
+    }
+    
+    .data-table {
+        font-size: 11px !important;
+    }
+    
+    .data-table th,
+    .data-table td {
+        padding: 6px 4px !important;
+    }
+}
+
+/* Landscape orientation adjustments */
+@media (max-width: 768px) and (orientation: landscape) {
+    body.login-page {
+        padding: 5px !important;
+    }
+    
+    .login-container {
+        padding: 15px !important;
+        max-height: 90vh !important;
+        overflow-y: auto !important;
+    }
+    
+    .logo h1 {
+        font-size: 20px !important;
+        margin-bottom: 5px !important;
+    }
+    
+    .logo img {
+        width: 40px !important;
+        height: 40px !important;
+        margin-bottom: 5px !important;
+    }
+    
+    .form-group {
+        margin-bottom: 12px !important;
+    }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+    /* iOS Safari viewport fix */
+    html {
+        height: -webkit-fill-available !important;
+    }
+    
+    body {
+        min-height: -webkit-fill-available !important;
+        height: auto !important;
+    }
+    
+    body.login-page {
+        min-height: -webkit-fill-available !important;
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+    
+    body.dashboard-page {
+        min-height: -webkit-fill-available !important;
+        height: auto !important;
+        overflow-y: auto !important;
+    }
+    
+    .main-content {
+        height: auto !important;
+        min-height: calc(-webkit-fill-available - 60px) !important;
+        overflow-y: auto !important;
+    }
+}
+
+/* Android Chrome specific fixes */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+    .form-group input,
+    .form-group select {
+        -webkit-appearance: none !important;
+        appearance: none !important;
+    }
+}
+
+/* Touch-friendly improvements */
+@media (hover: none) and (pointer: coarse) {
+    /* Increase touch targets */
+    .nav-item {
+        padding: 18px 20px !important;
+    }
+    
+    .btn,
+    .btn-primary,
+    .btn-secondary {
+        min-height: 44px !important; /* iOS recommended touch target */
+    }
+    
+    .mobile-hamburger {
+        width: 44px !important;
+        height: 44px !important;
+    }
+    
+    /* Remove hover effects on touch devices */
+    .nav-item:hover,
+    .btn:hover,
+    .glass-card:hover {
+        transform: none !important;
+    }
+    
+    /* Add active states for touch feedback */
+    .nav-item:active {
+        background: rgba(255, 255, 255, 0.2) !important;
+    }
+    
+    .btn:active {
+        transform: scale(0.98) !important;
+    }
+}
+
+/* High DPI display adjustments */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+    .logo img {
+        image-rendering: -webkit-optimize-contrast !important;
+        image-rendering: crisp-edges !important;
+    }
+}
+
+/* Accessibility improvements for mobile */
+@media (max-width: 768px) {
+    /* Ensure text is readable */
+    body {
+        -webkit-text-size-adjust: 100% !important;
+        text-size-adjust: 100% !important;
+    }
+    
+    /* Improve focus indicators */
+    .form-group input:focus,
+    .form-group select:focus,
+    .btn:focus {
+        outline: 2px solid #667eea !important;
+        outline-offset: 2px !important;
+    }
+    
+    /* Ensure sufficient color contrast */
+    .nav-item {
+        color: white !important;
+    }
+    
+    .page-title {
+        color: white !important;
+    }
+}

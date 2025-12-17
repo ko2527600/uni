@@ -1,0 +1,75 @@
+═══════════════════════════════════════════════════════════════
+  📱 QUICK GUIDE: Access UniPortal on Your Phone
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Find Your Computer's IP
+────────────────────────────────
+Run this script:
+    python check_network.py
+
+OR manually:
+    Windows: ipconfig
+    Mac/Linux: ifconfig
+
+Look for IP like: 192.168.1.100 or 10.0.0.5
+
+STEP 2: Start the Server
+─────────────────────────
+    python run.py
+
+You'll see your IP address displayed!
+
+STEP 3: Connect from Phone
+───────────────────────────
+1. Make sure phone is on SAME WiFi as computer
+2. Open browser on phone
+3. Go to: http://YOUR_IP:5000
+   Example: http://192.168.1.100:5000
+
+═══════════════════════════════════════════════════════════════
+  ⚠️  IMPORTANT FOR GEOLOCATION ATTENDANCE
+═══════════════════════════════════════════════════════════════
+
+Geolocation ONLY works with HTTPS on mobile browsers!
+
+OPTION 1: Use Built-in HTTPS (Recommended)
+───────────────────────────────────────────
+1. Install pyOpenSSL: pip install pyOpenSSL
+2. Run with HTTPS: python run.py --https
+3. On phone, go to: https://YOUR_IP:5000
+4. Accept the security warning (it's safe, self-signed cert)
+5. Geolocation will work!
+
+OPTION 2: Test on Computer First
+─────────────────────────────────
+1. Run normally: python run.py
+2. Open on computer: http://localhost:5000
+3. Geolocation works on localhost (no HTTPS needed)
+4. Test the attendance feature there first
+
+OPTION 3: Use ngrok (if you want)
+──────────────────────────────────
+1. Download: https://ngrok.com/download
+2. Extract ngrok.exe to your project folder
+3. Run app: python run.py
+4. Run ngrok: ngrok http 5000
+5. Use HTTPS URL on phone
+
+═══════════════════════════════════════════════════════════════
+  🔥 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Can't connect?
+✓ Both devices on same WiFi?
+✓ Flask server running?
+✓ Firewall blocking port 5000? (Windows)
+✓ Using correct IP address?
+
+Geolocation not working?
+✓ Must use HTTPS (use ngrok)
+✓ Grant location permission in browser
+✓ Check browser supports geolocation
+
+═══════════════════════════════════════════════════════════════
+
+For detailed help, see: PHONE_ACCESS_GUIDE.md

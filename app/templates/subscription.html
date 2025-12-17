@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Plans - UniPortal</title>
+    
+    <!-- Prevent white flash -->
+    <style>
+        html { background-color: #667eea !important; }
+    </style>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="UniPortal">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20241215">
+    
+    <!-- Device-specific CSS -->
+    {% if is_mobile %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}?v=20241215">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_force.css') }}?v=20241215">
+    {% endif %}
+    
+    <style>
+        /* Custom styles for subscription page */
+        .duration-selector {
+            display: flex;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 8px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .duration-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .duration-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .duration-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        .best-value-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        
+        .pricing-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-bottom: 40px;
+        }
+        
+        .pricing-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .pricing-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .pricing-card.featured {
+            border-color: #fbbf24;
+            box-shadow: 0 8px 32px rgba(251, 191, 36, 0.3);
+        }
+        
+        .pricing-card.featured::before {
+            content: "Best Value";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #000;
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        
+        .plan-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .plan-name {
+            color: white;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+        
+        .plan-description {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .plan-price {
+            font-size: 36px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 5px;
+        }
+        
+        .plan-period {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        
+        .plan-features {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0 30px;
+        }
+        
+        .plan-features li {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            padding: 8px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .plan-features .check {
+            color: #10b981;
+            font-size: 16px;
+        }
+        
+        .plan-features .cross {
+            color: #ef4444;
+            font-size: 16px;
+        }
+        
+        .plan-button {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .plan-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .plan-button.disabled {
+            background: #6b7280;
+            color: white;
+            cursor: not-allowed;
+        }
+        
+        .plan-button.disabled:hover {
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .gold-button {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            color: #000;
+        }
+        
+        .platinum-button {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+        }
+        
+        /* Fix scrolling issues */
+        body.dashboard-page {
+            overflow: visible !important;
+            height: auto !important;
+        }
+        
+        .main-content {
+            overflow-y: auto !important;
+            height: auto !important;
+            max-height: none !important;
+        }
+        
+        /* Ensure proper spacing on mobile */
+        @media (max-width: 768px) {
+            .pricing-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .duration-selector {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .duration-btn {
+                width: 100%;
+                max-width: 300px;
+            }
+            
+            .main-content {
+                padding: 75px 15px 30px 15px !important;
+                overflow-y: auto !important;
+                height: auto !important;
+                min-height: calc(100vh - 60px) !important;
+            }
+            
+            body.dashboard-page {
+                height: auto !important;
+                min-height: 100vh !important;
+                overflow: visible !important;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">UniPortal</div>
+        <div class="loading-subtext">Loading subscription plans...</div>
+    </div>
+    
+    <!-- Mobile Top Bar (visible only on mobile) -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" id="mobileMenuToggle" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-logo">
+            <img src="/static/logo.png" alt="UniPortal">
+            <span>UniPortal</span>
+        </div>
+        <div class="mobile-avatar">
+            {{ current_user.avatar_initials }}
+        </div>
+    </div>
+
+    <!-- Sidebar (hidden on mobile by default, visible on desktop) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <img src="/static/logo.png" alt="UniPortal Logo">
+                <span>{% if current_user.role == 'Rep' %}Class Rep{% else %}UniPortal Student{% endif %}</span>
+            </div>
+            
+            <!-- User Profile Section -->
+            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="color: white; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ current_user.username }}</div>
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">{{ current_user.role }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if current_user.class_group and current_user.class_group.is_active_premium %}
+                    <span style="display: inline-block; padding: 4px 8px; background: rgba(156, 163, 175, 0.8); color: white; border-radius: 6px; font-size: 11px; font-weight: 600;">PRO</span>
+                    {% else %}
+                    <a href="{{ url_for('main.subscription') }}" style="display: inline-block; padding: 4px 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        <i class="fas fa-rocket"></i> Upgrade
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.profile') }}" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: white; text-decoration: none; flex-shrink: 0;">
+                        {{ current_user.avatar_initials }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('main.dashboard') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-home"></i></span>
+                <span>Dashboard</span>
+            </a>
+            {% if current_user.role == 'Rep' %}
+            <a href="{{ url_for('main.attendance_dashboard') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-clipboard-check"></i></span>
+                <span>Attendance</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.class_chat') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-comments"></i></span>
+                <span>Class Chat</span>
+            </a>
+            <a href="{{ url_for('main.forum') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-newspaper"></i></span>
+                <span>Forum</span>
+            </a>
+            <a href="{{ url_for('main.library') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-book-open"></i></span>
+                <span>Library</span>
+            </a>
+            <a href="{{ url_for('main.subscription') }}" class="nav-item active">
+                <span class="icon"><i class="fas fa-gem"></i></span>
+                <span>Subscription</span>
+            </a>
+            {% if current_user.role == 'Rep' %}
+            <a href="{{ url_for('main.payment_history') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-receipt"></i></span>
+                <span>Payments</span>
+            </a>
+            <a href="{{ url_for('main.analytics') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                <span>Analytics</span>
+            </a>
+            {% endif %}
+            <a href="{{ url_for('main.settings') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('main.logout') }}" class="nav-item" onclick="return confirmLogout(event);">
+                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-gem"></i> Upgrade your Class Portal
+            </h1>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 16px; margin-top: 10px;">
+                {% if current_user.class_group and current_user.class_group.subscription_plan != 'free' %}
+                    <i class="fas fa-crown"></i> 
+                    <strong>{{ current_user.class_group.subscription_plan.title() }} Plan Active!</strong>
+                    {% if current_user.class_group.subscription_expiry %}
+                        Expires: {{ current_user.class_group.subscription_expiry.strftime('%B %d, %Y') }}
+                    {% endif %}
+                {% else %}
+                    Unlock premium features with flexible semester-based pricing
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Duration Selector -->
+        <div class="duration-selector">
+            <button id="duration-1" class="duration-btn active" onclick="selectDuration(1)">
+                1 Semester (Standard)
+            </button>
+            <button id="duration-2" class="duration-btn" onclick="selectDuration(2)">
+                2 Semesters (Save 10%)
+                <span class="best-value-badge">Best Value</span>
+            </button>
+            <button id="duration-4" class="duration-btn" onclick="selectDuration(4)">
+                4 Semesters (Save 20%)
+            </button>
+        </div>
+
+        <!-- Pricing Cards -->
+        <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="pricing-card">
+                <div class="plan-icon">
+                    <i class="fas fa-gift" style="font-size: 48px; color: #6b7280;"></i>
+                </div>
+                <h3 class="plan-name">Free (Basic)</h3>
+                <p class="plan-description">Limited features for small classes</p>
+                <div class="plan-price">FREE</div>
+                <div class="plan-period">Always free</div>
+                
+                <ul class="plan-features">
+                    <li><span class="check">✅</span>100MB Storage</li>
+                    <li><span class="check">✅</span>2MB Max File Size</li>
+                    <li><span class="check">✅</span>Basic Features</li>
+                    <li><span class="cross">❌</span>No Priority Support</li>
+                    <li><span class="cross">❌</span>Limited Access</li>
+                </ul>
+                
+                <button class="plan-button disabled" disabled>
+                    Your Current Plan
+                </button>
+            </div>
+
+            <!-- Gold Plan -->
+            <div class="pricing-card">
+                <div class="plan-icon">
+                    <i class="fas fa-star" style="font-size: 48px; color: #fbbf24;"></i>
+                </div>
+                <h3 class="plan-name">Gold (Standard)</h3>
+                <p class="plan-description">Perfect for most classes</p>
+                <div class="plan-price">
+                    <span id="gold-price">250</span> GHS
+                </div>
+                <div class="plan-period" id="gold-period">per semester</div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 13px; margin-bottom: 15px;" id="gold-total">Total: 250 GHS</div>
+                
+                <ul class="plan-features">
+                    <li><span class="check">✅</span>8GB Storage</li>
+                    <li><span class="check">✅</span>15MB Max Files</li>
+                    <li><span class="check">✅</span>Priority Support</li>
+                    <li><span class="check">✅</span>Advanced Features</li>
+                    <li><span class="check">✅</span>Analytics Dashboard</li>
+                </ul>
+                
+                <form method="POST" action="{{ url_for('main.initiate_payment') }}" id="gold-form">
+                    <input type="hidden" name="plan_name" value="gold">
+                    <input type="hidden" name="duration_semesters" id="gold-duration-input" value="1">
+                    <button type="submit" class="plan-button gold-button" id="gold-button">
+                        Choose Gold - 250 GHS
+                    </button>
+                </form>
+            </div>
+
+            <!-- Platinum Plan -->
+            <div class="pricing-card featured">
+                <div class="plan-icon">
+                    <i class="fas fa-crown" style="font-size: 48px; color: #8b5cf6;"></i>
+                </div>
+                <h3 class="plan-name">Platinum (Pro)</h3>
+                <p class="plan-description">Maximum features & storage</p>
+                <div class="plan-price">
+                    <span id="platinum-price">450</span> GHS
+                </div>
+                <div class="plan-period" id="platinum-period">per semester</div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 13px; margin-bottom: 15px;" id="platinum-total">Total: 450 GHS</div>
+                
+                <ul class="plan-features">
+                    <li><span class="check">✅</span>30GB Storage</li>
+                    <li><span class="check">✅</span>50MB Max Files</li>
+                    <li><span class="check">✅</span>Archive Access</li>
+                    <li><span class="check">✅</span>Premium Support</li>
+                    <li><span class="check">✅</span>Advanced Analytics</li>
+                    <li><span class="check">✅</span>Custom Branding</li>
+                </ul>
+                
+                <form method="POST" action="{{ url_for('main.initiate_payment') }}" id="platinum-form">
+                    <input type="hidden" name="plan_name" value="platinum">
+                    <input type="hidden" name="duration_semesters" id="platinum-duration-input" value="1">
+                    <button type="submit" class="plan-button platinum-button" id="platinum-button">
+                        Choose Platinum - 450 GHS
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        // Loading Screen Management
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                setTimeout(function() {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }, 200);
+            }
+        });
+        
+        let selectedDuration = 1;
+        
+        // Pricing data from models
+        const pricingTiers = {
+            'gold': { base_price: 250, name: 'Gold Plan' },
+            'platinum': { base_price: 450, name: 'Platinum Plan' }
+        };
+        
+        const durationDiscounts = {
+            1: { label: '1 Semester', multiplier: 1.0 },
+            2: { label: '2 Semesters (1 Year)', multiplier: 0.9 },
+            4: { label: '4 Semesters (2 Years)', multiplier: 0.8 }
+        };
+        
+        function selectDuration(duration) {
+            selectedDuration = duration;
+            
+            // Update active button
+            document.querySelectorAll('[id^="duration-"]').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.getElementById(`duration-${duration}`).classList.add('active');
+            
+            updatePrices(duration);
+        }
+        
+        function updatePrices(duration) {
+            const discount = durationDiscounts[duration];
+            
+            // Update Gold pricing
+            const goldBasePrice = pricingTiers.gold.base_price;
+            const goldTotalPrice = Math.round(goldBasePrice * duration * discount.multiplier);
+            const goldPerSemester = Math.round(goldTotalPrice / duration);
+            
+            document.getElementById('gold-price').textContent = goldPerSemester;
+            document.getElementById('gold-period').textContent = duration === 1 ? 'per semester' : `per ${duration} semesters`;
+            document.getElementById('gold-total').textContent = `Total: ${goldTotalPrice} GHS`;
+            document.getElementById('gold-button').textContent = `Choose Gold - ${goldTotalPrice} GHS`;
+            document.getElementById('gold-duration-input').value = duration;
+            
+            // Update Platinum pricing
+            const platinumBasePrice = pricingTiers.platinum.base_price;
+            const platinumTotalPrice = Math.round(platinumBasePrice * duration * discount.multiplier);
+            const platinumPerSemester = Math.round(platinumTotalPrice / duration);
+            
+            document.getElementById('platinum-price').textContent = platinumPerSemester;
+            document.getElementById('platinum-period').textContent = duration === 1 ? 'per semester' : `per ${duration} semesters`;
+            document.getElementById('platinum-total').textContent = `Total: ${platinumTotalPrice} GHS`;
+            document.getElementById('platinum-button').textContent = `Choose Platinum - ${platinumTotalPrice} GHS`;
+            document.getElementById('platinum-duration-input').value = duration;
+        }
+        
+        function confirmLogout(event) {
+            return confirm('Are you sure you want to logout?');
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('active');
+        }
+        
+        // Initialize with default duration
+        updatePrices(1);
+    </script>
+</body>
+</html>

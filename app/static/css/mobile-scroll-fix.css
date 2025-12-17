@@ -1,0 +1,102 @@
+/* MOBILE SCROLLING NUCLEAR FIX */
+/* This file contains aggressive overrides to fix mobile scrolling issues */
+
+@media (max-width: 768px) {
+    /* FORCE SCROLLING ON ALL ELEMENTS */
+    html {
+        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: static !important;
+        -webkit-overflow-scrolling: touch !important;
+        scroll-behavior: smooth !important;
+    }
+    
+    body {
+        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: static !important;
+        -webkit-overflow-scrolling: touch !important;
+        display: block !important;
+        flex-direction: unset !important;
+        max-height: none !important;
+    }
+    
+    /* OVERRIDE ALL DASHBOARD PAGE CONSTRAINTS */
+    body.dashboard-page {
+        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: static !important;
+        display: block !important;
+        flex-direction: unset !important;
+        max-height: none !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* FORCE MAIN CONTENT TO BE SCROLLABLE */
+    .main-content {
+        overflow: visible !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        min-height: calc(100vh - 60px) !important;
+        position: static !important;
+        flex: unset !important;
+        display: block !important;
+        -webkit-overflow-scrolling: touch !important;
+        max-height: none !important;
+    }
+    
+    /* SETTINGS PAGE SPECIFIC FIXES */
+    .settings-container {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 100vh !important;
+        position: static !important;
+        max-height: none !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .login-container {
+        overflow: visible !important;
+        height: auto !important;
+        position: static !important;
+        max-height: none !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* REMOVE ALL HEIGHT CONSTRAINTS */
+    * {
+        max-height: none !important;
+    }
+    
+    *:not(.mobile-top-bar):not(.sidebar):not(.sidebar-nav):not(.nav-item) {
+        position: static !important;
+    }
+    
+    /* Ensure sidebar remains properly positioned and scrollable */
+    .sidebar {
+        position: sticky !important;
+        top: 0 !important;
+        height: 100vh !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .sidebar-nav {
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        -webkit-overflow-scrolling: touch !important;
+        flex: 1 !important;
+        min-height: 0 !important;
+    }
+}

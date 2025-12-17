@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Assignment - {{ course.name }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+    <!-- Mobile Top Bar -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" onclick="history.back()">
+            <i class="fas fa-arrow-left"></i>
+        </button>
+        <div class="mobile-logo">
+            <span>Create Assignment</span>
+        </div>
+        <div style="width: 40px;"></div>
+    </div>
+
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Header -->
+        <div class="page-header">
+            <h1 class="page-title">
+                <i class="fas fa-plus-circle"></i> Create Assignment
+            </h1>
+            <p style="color: rgba(255, 255, 255, 0.8); margin-top: 10px;">
+                Course: <strong>{{ course.name }}</strong>
+            </p>
+        </div>
+
+        <!-- Assignment Form -->
+        <div class="glass-card">
+            <div class="card-header">
+                <h2><i class="fas fa-edit"></i> Assignment Details</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('main.lecturer_create_assignment') }}">
+                    <!-- Assignment Title -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="title" style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                            <i class="fas fa-heading"></i> Assignment Title *
+                        </label>
+                        <input type="text" id="title" name="title" required
+                               placeholder="e.g., Data Structures Quiz 1, Programming Project"
+                               style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                    </div>
+
+                    <!-- Assignment Description -->
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="description" style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                            <i class="fas fa-align-left"></i> Description & Instructions *
+                        </label>
+                        <textarea id="description" name="description" required rows="6"
+                                  placeholder="Provide detailed instructions for the assignment..."
+                                  style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px; resize: vertical;"></textarea>
+                    </div>
+
+                    <!-- Due Date -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group">
+                            <label for="due_date" style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                                <i class="fas fa-calendar"></i> Due Date (Optional)
+                            </label>
+                            <input type="datetime-local" id="due_date" name="due_date"
+                                   style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="max_score" style="color: white; display: block; margin-bottom: 8px; font-weight: 600;">
+                                <i class="fas fa-star"></i> Maximum Score
+                            </label>
+                            <input type="number" id="max_score" name="max_score" value="100" min="1" max="1000"
+                                   style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                        </div>
+                    </div>
+
+                    <!-- Instructions -->
+                    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                        <h4 style="color: #60a5fa; margin-bottom: 10px; font-size: 14px;">
+                            <i class="fas fa-info-circle"></i> How it works:
+                        </h4>
+                        <ul style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin: 0; padding-left: 20px;">
+                            <li>Assignment will be announced to all students in your class</li>
+                            <li>Students can submit their work through the student dashboard</li>
+                            <li>You can grade submissions through your lecturer dashboard</li>
+                            <li>Students will receive notifications about the new assignment</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div style="display: flex; gap: 15px; justify-content: flex-end;">
+                        <a href="{{ url_for('main.lecturer_dashboard') }}" 
+                           style="padding: 12px 24px; background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; text-decoration: none; font-weight: 600; transition: all 0.3s;">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" 
+                                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s;">
+                            <i class="fas fa-plus-circle"></i> Create Assignment
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-msg').forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-10px)';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 5000);
+    </script>
+</body>
+</html>

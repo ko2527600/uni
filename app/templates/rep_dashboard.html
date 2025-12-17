@@ -1,0 +1,1415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Rep Dashboard - UniPortal</title>
+    
+    <!-- Prevent white flash and ensure basic layout -->
+    <style>
+        html { background-color: #667eea !important; }
+        
+        /* Critical CSS for immediate layout */
+        body.dashboard-page {
+            display: flex !important;
+            flex-direction: row !important;
+            min-height: 100vh !important;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+        }
+        
+        .sidebar {
+            width: 280px !important;
+            flex-shrink: 0 !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(15px) !important;
+            border-right: 1px solid rgba(255, 255, 255, 0.18) !important;
+            display: flex !important;
+            flex-direction: column !important;
+            height: 100vh !important;
+        }
+        
+        .main-content {
+            flex: 1 !important;
+            display: flex !important;
+            flex-direction: column !important;
+            padding: 30px !important;
+            overflow-y: auto !important;
+        }
+        
+        .page-title {
+            color: white !important;
+            font-size: 32px !important;
+            font-weight: 700 !important;
+        }
+        
+        .stats-grid {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+            gap: 20px !important;
+            margin-bottom: 30px !important;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.15) !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            border-radius: 20px !important;
+            padding: 25px !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37) !important;
+            transition: all 0.3s ease !important;
+            color: white !important;
+        }
+        
+        .stat-card.green { border-left: 4px solid #22c55e !important; }
+        .stat-card.orange { border-left: 4px solid #f97316 !important; }
+        .stat-card.blue { border-left: 4px solid #3b82f6 !important; }
+        .stat-card.red { border-left: 4px solid #ef4444 !important; }
+        
+        .stat-icon {
+            font-size: 32px !important;
+            margin-bottom: 15px !important;
+            color: white !important;
+        }
+        
+        .stat-content h3 {
+            color: white !important;
+            font-size: 28px !important;
+            font-weight: 700 !important;
+            margin: 0 0 5px 0 !important;
+        }
+        
+        .stat-content p {
+            color: rgba(255, 255, 255, 0.8) !important;
+            font-size: 14px !important;
+            margin: 0 !important;
+        }
+        
+        .nav-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 15px !important;
+            padding: 15px 20px !important;
+            color: white !important;
+            text-decoration: none !important;
+            transition: all 0.3s ease !important;
+            font-size: 15px !important;
+            font-weight: 500 !important;
+        }
+        
+        .nav-item:hover {
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+        
+        .sidebar-brand {
+            color: white !important;
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            display: flex !important;
+            align-items: center !important;
+            gap: 10px !important;
+        }
+    </style>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#007bff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="UniPortal">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='logo.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20241215-2">
+</head>
+<body class="dashboard-page">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">UniPortal</div>
+        <div class="loading-subtext">Loading your dashboard...</div>
+    </div>
+    
+    <!-- Mobile Top Bar (visible only on mobile) -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" id="mobileMenuToggle" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-logo">
+            <img src="/static/logo.png" alt="UniPortal">
+            <span>UniPortal</span>
+        </div>
+        <div class="mobile-avatar">
+            {{ current_user.avatar_initials }}
+        </div>
+    </div>
+
+    <!-- Sidebar (hidden on mobile by default, visible on desktop) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <img src="/static/logo.png" alt="UniPortal Logo">
+                <span>Class Rep</span>
+            </div>
+            
+            <!-- User Profile Section -->
+            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="color: white; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ current_user.username }}</div>
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">{{ current_user.role }}</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    {% if current_user.class_group and current_user.class_group.is_active_premium %}
+                    <span style="display: inline-block; padding: 4px 8px; background: rgba(156, 163, 175, 0.8); color: white; border-radius: 6px; font-size: 11px; font-weight: 600;">PRO</span>
+                    {% else %}
+                    <a href="{{ url_for('main.subscription') }}" style="display: inline-block; padding: 4px 8px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 6px; font-size: 11px; font-weight: 600; text-decoration: none; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🚀 Upgrade
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('main.profile') }}" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: white; text-decoration: none; flex-shrink: 0;">
+                        {{ current_user.avatar_initials }}
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" onclick="showView('dashboard'); return false;">
+                <span class="icon"><i class="fas fa-tachometer-alt"></i></span>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showView('upload'); return false;">
+                <span class="icon"><i class="fas fa-upload"></i></span>
+                <span>Upload</span>
+            </a>
+            <a href="{{ url_for('main.attendance_dashboard') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-clipboard-check"></i></span>
+                <span>Attendance</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showView('broadcasts'); return false;">
+                <span class="icon"><i class="fas fa-bullhorn"></i></span>
+                <span>Broadcasts</span>
+            </a>
+            <a href="{{ url_for('main.class_chat') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-comments"></i></span>
+                <span>Class Chat</span>
+            </a>
+            <a href="{{ url_for('main.forum') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-newspaper"></i></span>
+                <span>Forum</span>
+            </a>
+            <a href="{{ url_for('main.library') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-book-open"></i></span>
+                <span>Library</span>
+            </a>
+            <a href="#" class="nav-item" onclick="showView('slideBank'); return false;">
+                <span class="icon"><i class="fas fa-folder"></i></span>
+                <span>Slide Bank</span>
+            </a>
+            <a href="{{ url_for('main.subscription') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-gem"></i></span>
+                <span>Subscription</span>
+            </a>
+            <a href="{{ url_for('main.payment_history') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-receipt"></i></span>
+                <span>Payments</span>
+            </a>
+            <a href="{{ url_for('main.analytics') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-chart-line"></i></span>
+                <span>Analytics</span>
+            </a>
+            <a href="{{ url_for('main.settings') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('main.logout') }}" class="nav-item" onclick="return confirmLogout(event);">
+                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Subscription Status Banner (Rep-specific) -->
+        {% if current_user.class_group %}
+            {% if not is_premium %}
+                <div style="background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); padding: 20px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #991b1b; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <div style="font-size: 32px;">⚠️</div>
+                        <div style="flex: 1;">
+                            <h3 style="color: white; font-size: 18px; margin-bottom: 5px; font-weight: 600;">Premium Subscription Expired!</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 10px;">Your class premium has expired. Renew now to restore full access for all students.</p>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">🔒 Locked: Upload slides, Post broadcasts, Create attendance, Forum access</p>
+                        </div>
+                        <a href="{{ url_for('main.subscription') }}" style="padding: 12px 24px; background: white; color: #dc2626; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 14px; white-space: nowrap; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            Renew Now
+                        </a>
+                    </div>
+                </div>
+            {% elif days_remaining <= 7 %}
+                <div style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); padding: 15px; border-radius: 12px; margin-bottom: 20px; border-left: 4px solid #b45309; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div style="font-size: 24px;">⏰</div>
+                        <div style="flex: 1;">
+                            <h3 style="color: white; font-size: 16px; margin-bottom: 3px; font-weight: 600;">Premium Expiring Soon!</h3>
+                            <p style="color: rgba(255, 255, 255, 0.9); font-size: 13px;">Your class premium expires in {{ days_remaining }} day{{ 's' if days_remaining != 1 else '' }}. Renew to avoid service interruption.</p>
+                        </div>
+                        <a href="{{ url_for('main.subscription') }}" style="padding: 10px 20px; background: white; color: #d97706; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 13px; white-space: nowrap;">
+                            Renew Now
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        {% endif %}
+
+        <!-- Dashboard View -->
+        <div id="dashboardView" class="view-section active">
+            <!-- Header -->
+            <div class="page-header">
+                <h1 class="page-title">Class Rep Dashboard</h1>
+                <a href="{{ url_for('main.download_all_zip') }}" class="btn-download-all">
+                    📦 Download All (.zip)
+                </a>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="stats-grid">
+                <div class="stat-card green">
+                    <i class="fas fa-wallet stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">GHS {{ "%.2f"|format(wallet.current_balance) }}</div>
+                        <div class="stat-label">Class Wallet Balance</div>
+                    </div>
+                </div>
+
+                <div class="stat-card orange">
+                    <i class="fas fa-users stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ total_students }}</div>
+                        <div class="stat-label">Total Students</div>
+                    </div>
+                </div>
+
+                <div class="stat-card blue">
+                    <i class="fas fa-file-alt stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ files_uploaded }}</div>
+                        <div class="stat-label">Files Uploaded</div>
+                    </div>
+                </div>
+
+                <div class="stat-card red">
+                    <i class="fas fa-bullhorn stat-icon"></i>
+                    <div class="stat-content">
+                        <div class="stat-value">{{ broadcasts_count }}</div>
+                        <div class="stat-label">Broadcasts Sent</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Class Section -->
+            <div class="table-card" style="margin-bottom: 30px;">
+                {% if my_classes %}
+                <!-- Rep already has a class - Show class info -->
+                <h2><i class="fas fa-school"></i> My Class Group</h2>
+                <div style="background: rgba(16, 185, 129, 0.2); border: 2px solid rgba(16, 185, 129, 0.4); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px;">
+                        <div style="width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; font-size: 28px; color: white;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <h3 style="color: white; font-size: 20px; margin-bottom: 5px;">{{ my_classes[0].name }}</h3>
+                            <p style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">Class Code: {{ my_classes[0].code }}</p>
+                        </div>
+                    </div>
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin-bottom: 10px;">
+                            <i class="fas fa-user-plus"></i> <strong>Share this code with students to join your class:</strong>
+                        </p>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <code style="flex: 1; background: rgba(0, 255, 0, 0.3); color: #4ade80; padding: 12px; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; letter-spacing: 3px; cursor: pointer;" onclick="copyToClipboard('{{ my_classes[0].join_code }}')">
+                                {{ my_classes[0].join_code }}
+                            </code>
+                            <button onclick="copyToClipboard('{{ my_classes[0].join_code }}')" style="padding: 12px 20px; background: rgba(59, 130, 246, 0.8); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+                    <div style="background: rgba(0, 0, 0, 0.2); padding: 15px; border-radius: 8px;">
+                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px; margin-bottom: 10px;">
+                            <i class="fas fa-user-tie"></i> <strong>Share this code with other Reps to help manage this class:</strong>
+                        </p>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <code style="flex: 1; background: rgba(147, 51, 234, 0.3); color: #c084fc; padding: 12px; border-radius: 8px; font-size: 18px; font-weight: 700; text-align: center; letter-spacing: 3px; cursor: pointer;" onclick="copyToClipboard('{{ my_classes[0].join_code }}')">
+                                {{ my_classes[0].join_code }}
+                            </code>
+                            <button onclick="copyToClipboard('{{ my_classes[0].join_code }}')" style="padding: 12px 20px; background: rgba(147, 51, 234, 0.8); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; white-space: nowrap;">
+                                <i class="fas fa-copy"></i> Copy
+                            </button>
+                        </div>
+                        <p style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-top: 8px;">
+                            <i class="fas fa-info-circle"></i> Other Reps use this same code to join and help manage your class
+                        </p>
+                    </div>
+                    <div style="margin-top: 15px; padding: 12px; background: rgba(251, 191, 36, 0.2); border-radius: 8px; border-left: 3px solid #fbbf24;">
+                        <p style="color: white; font-size: 13px;">
+                            <i class="fas fa-lock"></i> <strong>ONE Rep = ONE Class Group</strong><br>
+                            <span style="font-size: 12px; color: rgba(255, 255, 255, 0.8);">You can only create ONE class group. Add multiple courses below to organize your class. To help another class, use their join code.</span>
+                        </p>
+                    </div>
+                </div>
+                
+                {% else %}
+                <!-- Rep doesn't have a class yet - Show create form -->
+                <h2><i class="fas fa-plus-circle"></i> Create Your Class Group</h2>
+                <div style="background: rgba(59, 130, 246, 0.1); border: 2px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 20px; margin-bottom: 20px;">
+                    <div style="display: flex; align-items: start; gap: 12px; margin-bottom: 15px;">
+                        <div style="width: 40px; height: 40px; border-radius: 50%; background: rgba(59, 130, 246, 0.3); display: flex; align-items: center; justify-content: center; font-size: 18px; color: #60a5fa; flex-shrink: 0;">
+                            <i class="fas fa-info-circle"></i>
+                        </div>
+                        <div>
+                            <p style="color: white; font-size: 14px; line-height: 1.6; margin-bottom: 8px;">
+                                <strong>ONE Rep = ONE Class Group</strong>
+                            </p>
+                            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px; line-height: 1.5;">
+                                You can create <strong>ONE</strong> class group. Within it, you can add multiple courses. Once created, you cannot create another class group. To help manage another class, use their join code.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <form method="POST" action="{{ url_for('main.create_class') }}">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <input 
+                            type="text" 
+                            name="class_name" 
+                            placeholder="Class Name (e.g., Level 100 CS)" 
+                            required
+                            style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                        >
+                        <input 
+                            type="text" 
+                            name="class_code" 
+                            placeholder="Class Code (e.g., CS-100)" 
+                            required
+                            style="padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                        >
+                    </div>
+                    <button type="submit" class="btn-download-all" style="width: 100%;">
+                        <i class="fas fa-plus-circle"></i> Create My Class Group
+                    </button>
+                </form>
+                {% endif %}
+                
+                {% if my_classes %}
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                    <h3 style="color: white; margin-bottom: 15px; font-size: 16px;">📋 My Created Classes & Courses</h3>
+                    {% for class in my_classes %}
+                    <div style="background: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                            <div>
+                                <strong style="color: white; font-size: 15px;">{{ class.name }}</strong>
+                                <span style="color: rgba(255, 255, 255, 0.7); font-size: 13px; margin-left: 10px;">({{ class.code }})</span>
+                                <div style="margin-top: 5px;">
+                                    <span style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Student Join Code:</span>
+                                    <code style="background: rgba(0, 255, 0, 0.2); color: #4ade80; padding: 4px 8px; border-radius: 5px; font-size: 13px; margin-left: 5px; cursor: pointer;" onclick="copyToClipboard('{{ class.join_code }}')">{{ class.join_code }}</code>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Add Course Form -->
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; margin-bottom: 10px;">
+                            <form method="POST" action="{{ url_for('main.create_course') }}" style="display: flex; gap: 10px; align-items: center;">
+                                <input type="hidden" name="class_group_id" value="{{ class.id }}">
+                                <input 
+                                    type="text" 
+                                    name="course_name" 
+                                    placeholder="Course Name (e.g., Math 101)" 
+                                    required
+                                    style="flex: 1; padding: 10px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 13px;"
+                                >
+                                <button type="submit" style="padding: 10px 20px; background: rgba(59, 130, 246, 0.8); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 13px; white-space: nowrap;">
+                                    ➕ Add Course
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- List of Courses -->
+                        {% if class.courses %}
+                        <div style="margin-top: 10px;">
+                            <h4 style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-bottom: 8px;">📚 Courses:</h4>
+                            {% for course in class.courses %}
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 6px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="color: white; font-size: 13px; font-weight: 500;">{{ course.name }}</span>
+                                    {% if course.lecturer %}
+                                    <span style="color: rgba(255, 255, 255, 0.6); font-size: 11px; margin-left: 8px;">👨‍🏫 {{ course.lecturer.username }}</span>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <span style="color: rgba(255, 255, 255, 0.7); font-size: 11px; margin-right: 8px;">Lecturer Code:</span>
+                                    <code style="background: rgba(255, 165, 0, 0.2); color: #fb923c; padding: 3px 6px; border-radius: 4px; font-size: 12px; cursor: pointer;" onclick="copyToClipboard('{{ course.lecturer_code }}')">{{ course.lecturer_code }}</code>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% else %}
+                        <div style="color: rgba(255, 255, 255, 0.5); font-size: 12px; text-align: center; padding: 10px;">
+                            No courses yet. Add your first course above!
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Broadcast Announcement -->
+            <div class="table-card" style="margin-bottom: 30px;">
+                <h2>📢 Post Announcement</h2>
+                <form method="POST" action="{{ url_for('main.post_broadcast') }}" id="broadcastForm">
+                    <input type="hidden" id="editBroadcastId" name="broadcast_id" value="">
+                    <textarea 
+                        id="broadcastMessage"
+                        name="message" 
+                        placeholder="Type your announcement to all students..." 
+                        rows="4" 
+                        maxlength="500" 
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 15px;"
+                    ></textarea>
+                    <button type="submit" class="btn-download-all" style="width: 100%;" id="broadcastBtn">
+                        Broadcast to All Students
+                    </button>
+                </form>
+                
+                <!-- Broadcast History -->
+                {% if my_broadcasts %}
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                    <h3 style="color: white; margin-bottom: 15px; font-size: 16px;">📋 Broadcast History</h3>
+                    {% for broadcast in my_broadcasts %}
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid rgba(251, 191, 36, 0.8);">
+                        <div style="display: flex; justify-content: space-between; align-items: start;">
+                            <div style="flex: 1;">
+                                <div style="color: white; font-size: 14px; line-height: 1.6; margin-bottom: 8px;">{{ broadcast.message }}</div>
+                                <div style="color: rgba(255, 255, 255, 0.6); font-size: 12px;">
+                                    <i class="fas fa-clock"></i> {{ broadcast.timestamp.strftime('%B %d, %Y at %H:%M') }}
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 8px; margin-left: 15px;">
+                                <button onclick="editBroadcast(this)" 
+                                        data-broadcast-id="{{ broadcast.id }}"
+                                        data-broadcast-message="{{ broadcast.message }}"
+                                        style="padding: 6px 12px; background: rgba(59, 130, 246, 0.8); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.3s;">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <form method="POST" action="{{ url_for('main.delete_broadcast', broadcast_id=broadcast.id) }}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this broadcast?');">
+                                    <button type="submit" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.8); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px; transition: background 0.3s;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Auto-Grouper -->
+            <div class="table-card" style="margin-bottom: 30px;">
+                <h2>🤝 Auto-Grouper</h2>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 20px;">
+                    Randomly generate student groups for projects, presentations, or activities.
+                </p>
+                <form method="POST" action="{{ url_for('main.generate_groups') }}">
+                    <div style="display: flex; gap: 15px; align-items: end;">
+                        <div style="flex: 1;">
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-users"></i> Students per Group
+                            </label>
+                            <input 
+                                type="number" 
+                                name="group_size" 
+                                min="2" 
+                                max="20" 
+                                value="5" 
+                                required
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                            >
+                        </div>
+                        <button type="submit" class="btn-download-all" style="padding: 12px 30px; white-space: nowrap;">
+                            <i class="fas fa-random"></i> Generate Groups
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Geolocation Attendance -->
+            <div class="table-card" style="margin-bottom: 30px;">
+                <h2>📍 Geolocation Attendance</h2>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 20px;">
+                    Start an attendance session using your current location. Students within 50 meters can mark attendance.
+                </p>
+                
+                <form id="attendanceForm" method="POST" action="{{ url_for('main.start_attendance') }}">
+                    <input type="hidden" name="latitude" id="repLatitude">
+                    <input type="hidden" name="longitude" id="repLongitude">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr auto; gap: 15px; align-items: end;">
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-book"></i> Select Course *
+                            </label>
+                            {% if courses %}
+                            <select name="course_id" id="attendanceCourse" required style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                                <option value="">-- Choose a Course --</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% else %}
+                            <div style="padding: 12px; background: rgba(255, 165, 0, 0.2); border: 1px solid rgba(255, 165, 0, 0.4); border-radius: 10px; color: white; font-size: 13px;">
+                                <i class="fas fa-info-circle"></i> No courses available. Create courses first.
+                            </div>
+                            {% endif %}
+                        </div>
+                        <button type="button" onclick="startAttendanceSession()" class="btn-download-all" style="padding: 12px 30px; white-space: nowrap;">
+                            <i class="fas fa-map-marker-alt"></i> Start Session
+                        </button>
+                    </div>
+                    
+                    <div id="locationStatus" style="margin-top: 15px; padding: 12px; border-radius: 8px; display: none;"></div>
+                </form>
+                
+                <!-- Export Attendance -->
+                {% if courses %}
+                <div style="margin-top: 25px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                    <h3 style="color: white; margin-bottom: 15px; font-size: 16px;">📊 Export Attendance Records</h3>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        {% for course in courses %}
+                        <a href="{{ url_for('main.export_attendance', course_id=course.id) }}" 
+                           style="padding: 10px 20px; background: rgba(34, 197, 94, 0.8); color: white; text-decoration: none; border-radius: 8px; font-size: 13px; transition: background 0.3s;"
+                           onmouseover="this.style.background='rgba(34, 197, 94, 1)'"
+                           onmouseout="this.style.background='rgba(34, 197, 94, 0.8)'">
+                            <i class="fas fa-download"></i> {{ course.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Mark My Attendance (Rep as Student) -->
+            <div class="table-card" style="margin-bottom: 30px;">
+                <h2>✅ Mark My Attendance</h2>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 20px;">
+                    As a Rep, you can also mark your own attendance for active sessions. You must be within 50 meters of the classroom.
+                </p>
+                
+                <form id="repSelfAttendanceForm" method="POST" action="{{ url_for('main.mark_attendance') }}">
+                    <input type="hidden" name="latitude" id="repSelfLatitude">
+                    <input type="hidden" name="longitude" id="repSelfLongitude">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-user"></i> Full Name *
+                            </label>
+                            <input type="text" name="student_name" placeholder="e.g., John Doe" required value="{{ current_user.username }}" style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-id-card"></i> Index Number *
+                            </label>
+                            <input type="text" name="index_number" placeholder="e.g., 2024001" required style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                        </div>
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-book"></i> Select Course *
+                            </label>
+                            {% if courses %}
+                            <select name="course_id" id="repSelfAttendanceCourse" required style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                                <option value="">-- Choose Course --</option>
+                                {% for course in courses %}
+                                <option value="{{ course.id }}">{{ course.name }}</option>
+                                {% endfor %}
+                            </select>
+                            {% else %}
+                            <div style="padding: 12px; background: rgba(255, 165, 0, 0.2); border: 1px solid rgba(255, 165, 0, 0.4); border-radius: 10px; color: white; font-size: 13px;">
+                                <i class="fas fa-info-circle"></i> No courses available.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <button type="button" onclick="markRepSelfAttendance()" class="btn-download-all" style="width: 100%;">
+                        <i class="fas fa-check-circle"></i> Mark My Attendance
+                    </button>
+                    
+                    <div id="repSelfLocationStatus" style="margin-top: 15px; padding: 12px; border-radius: 8px; display: none;"></div>
+                </form>
+            </div>
+
+            <!-- Manage Timetable -->
+            <div class="table-card" style="margin-bottom: 30px;">
+                <h2>📅 Manage Class Timetable</h2>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin-bottom: 20px;">
+                    Add or remove class schedule events for your students to view.
+                </p>
+                
+                <!-- Add Event Form -->
+                <form method="POST" action="{{ url_for('main.manage_timetable') }}">
+                    <input type="hidden" name="action" value="add">
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 15px;">
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-calendar-day"></i> Day *
+                            </label>
+                            <select name="day" required style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                                <option value="">-- Select Day --</option>
+                                <option value="Monday">Monday</option>
+                                <option value="Tuesday">Tuesday</option>
+                                <option value="Wednesday">Wednesday</option>
+                                <option value="Thursday">Thursday</option>
+                                <option value="Friday">Friday</option>
+                                <option value="Saturday">Saturday</option>
+                                <option value="Sunday">Sunday</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-book"></i> Course Name *
+                            </label>
+                            <input 
+                                type="text" 
+                                name="course_name" 
+                                placeholder="e.g., Mathematics 101" 
+                                required
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                            >
+                        </div>
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-clock"></i> Start Time *
+                            </label>
+                            <input 
+                                type="time" 
+                                name="start_time" 
+                                required
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                            >
+                        </div>
+                        <div>
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-clock"></i> End Time *
+                            </label>
+                            <input 
+                                type="time" 
+                                name="end_time" 
+                                required
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                            >
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-map-marker-alt"></i> Venue *
+                            </label>
+                            <input 
+                                type="text" 
+                                name="venue" 
+                                placeholder="e.g., Room 204, Science Block" 
+                                required
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;"
+                            >
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-download-all" style="width: 100%;">
+                        <i class="fas fa-plus"></i> Add Timetable Event
+                    </button>
+                </form>
+                
+                <!-- Current Events List -->
+                {% if timetable_events %}
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+                    <h3 style="color: white; margin-bottom: 15px; font-size: 16px;">📋 Current Schedule</h3>
+                    {% set days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] %}
+                    {% for day in days %}
+                        {% set day_events = timetable_events | selectattr('day', 'equalto', day) | list %}
+                        {% if day_events %}
+                        <div style="margin-bottom: 20px;">
+                            <h4 style="color: rgba(255, 255, 255, 0.9); font-size: 14px; margin-bottom: 10px; font-weight: 600;">{{ day }}</h4>
+                            {% for event in day_events %}
+                            <div style="background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 8px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 3px solid #667eea;">
+                                <div style="flex: 1;">
+                                    <div style="color: white; font-weight: 500; font-size: 14px; margin-bottom: 4px;">{{ event.course_name }}</div>
+                                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">
+                                        <i class="fas fa-clock"></i> {{ event.start_time }} - {{ event.end_time }}
+                                        <span style="margin-left: 15px;"><i class="fas fa-map-marker-alt"></i> {{ event.venue }}</span>
+                                    </div>
+                                </div>
+                                <form method="POST" action="{{ url_for('main.manage_timetable') }}" style="display: inline;" onsubmit="return confirm('Delete this timetable event?');">
+                                    <input type="hidden" name="action" value="delete">
+                                    <input type="hidden" name="event_id" value="{{ event.id }}">
+                                    <button type="submit" style="padding: 6px 12px; background: rgba(239, 68, 68, 0.8); color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 12px;">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </form>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div style="margin-top: 20px; padding: 20px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; text-align: center; color: rgba(255, 255, 255, 0.6);">
+                    <i class="fas fa-calendar-times" style="font-size: 32px; margin-bottom: 10px;"></i>
+                    <p>No timetable events yet. Add your first event above!</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Assignment Table -->
+            <div class="table-card">
+                <h2>📊 All Class Submissions</h2>
+                {% if all_assignments %}
+                    <div style="overflow-x: auto;">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Filename</th>
+                                    <th>Submission Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assignment in all_assignments %}
+                                <tr>
+                                    <td>{{ assignment.user.username }}</td>
+                                    <td>{{ assignment.filename }}</td>
+                                    <td>{{ assignment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <a href="{{ url_for('main.download_file', assignment_id=assignment.id) }}" class="btn btn-download">Download</a>
+                                            <a href="{{ url_for('main.preview_file', assignment_id=assignment.id) }}" class="btn btn-preview" target="_blank">Preview</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No class submissions yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Upload View -->
+        <div id="uploadView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">📤 Upload Assignment</h1>
+            </div>
+
+            <div class="table-card">
+                <h2>Upload Your Assignment</h2>
+                <form id="uploadForm" method="POST" action="{{ url_for('main.upload_assignment') }}" enctype="multipart/form-data">
+                    <!-- Course Selection -->
+                    <div style="margin-bottom: 20px;">
+                        <label style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                            <i class="fas fa-book"></i> Select Course *
+                        </label>
+                        {% if current_user.class_group and current_user.class_group.courses %}
+                        <select name="course_id" required style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px;">
+                            <option value="">-- Choose a Course --</option>
+                            {% for course in current_user.class_group.courses %}
+                            <option value="{{ course.id }}">{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% else %}
+                        <div style="padding: 12px; background: rgba(255, 165, 0, 0.2); border: 1px solid rgba(255, 165, 0, 0.4); border-radius: 10px; color: white; font-size: 13px;">
+                            <i class="fas fa-info-circle"></i> No courses created yet. Create courses in the "My Created Classes & Courses" section above.
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div style="border: 2px dashed rgba(255, 255, 255, 0.4); border-radius: 12px; padding: 40px 20px; text-align: center; transition: all 0.3s ease; cursor: pointer; background: rgba(255, 255, 255, 0.05); margin-bottom: 20px;" id="dropZone">
+                        <div style="font-size: 40px; margin-bottom: 10px;">📁</div>
+                        <p style="color: white; font-size: 15px; margin-bottom: 8px;">Drag & Drop your file here</p>
+                        <small style="color: rgba(255, 255, 255, 0.7); font-size: 13px;">or click to browse</small>
+                        <p id="fileName" style="margin-top: 15px; font-weight: 600; color: white;"></p>
+                        <input type="file" id="fileInput" name="file" accept=".pdf,.doc,.docx,.txt,.ppt,.pptx" style="display: none;">
+                    </div>
+                    <button type="submit" class="btn-download-all" id="uploadBtn" style="display: none; width: 100%;">Upload File</button>
+                </form>
+            </div>
+
+            <div class="table-card" style="margin-top: 30px;">
+                <h2>📋 My Submissions</h2>
+                {% if my_assignments %}
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Filename</th>
+                                <th>Date</th>
+                                <th>Grade/Feedback</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for assignment in my_assignments %}
+                            <tr>
+                                <td>{{ assignment.filename }}</td>
+                                <td>{{ assignment.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                <td>
+                                    {% if assignment.grade %}
+                                        <span class="grade-badge grade-complete">{{ assignment.grade }}</span>
+                                        {% if assignment.feedback %}
+                                            <br><small style="color: rgba(255, 255, 255, 0.7);">{{ assignment.feedback }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="grade-badge grade-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <div class="empty-state">
+                        <p>No submissions yet.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Broadcasts View -->
+        <div id="broadcastsView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">📢 Broadcasts</h1>
+            </div>
+
+            <div class="table-card" style="margin-bottom: 20px;">
+                <h2>Post New Announcement</h2>
+                <form method="POST" action="{{ url_for('main.post_broadcast') }}">
+                    <textarea 
+                        name="message" 
+                        placeholder="Type your announcement to all students..." 
+                        rows="4" 
+                        maxlength="500" 
+                        required
+                        style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 10px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 14px; font-family: inherit; resize: vertical; margin-bottom: 15px;"
+                    ></textarea>
+                    <button type="submit" class="btn-download-all" style="width: 100%;">
+                        Broadcast to All Students
+                    </button>
+                </form>
+            </div>
+
+            {% if broadcast %}
+            <div class="table-card">
+                <h2>Latest Broadcast</h2>
+                <div style="padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; border-left: 3px solid rgba(251, 191, 36, 0.8);">
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px; margin-bottom: 8px;">
+                        Posted by {{ broadcast.user.username }} on {{ broadcast.timestamp.strftime('%B %d, %Y at %H:%M') }}
+                    </div>
+                    <div style="color: white; font-size: 15px; line-height: 1.6;">{{ broadcast.message }}</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Slide Bank View -->
+        <div id="slideBankView" class="view-section">
+            <div class="page-header">
+                <h1 class="page-title">📚 Slide Bank</h1>
+            </div>
+
+            <!-- Upload Slide Form -->
+            <div class="glass-card" style="margin-bottom: 25px;">
+                <div class="card-header">
+                    <h2><i class="fas fa-cloud-upload-alt"></i> Upload New Slide</h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('main.upload_slide') }}" enctype="multipart/form-data">
+                        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="slideTitle" style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                    <i class="fas fa-heading"></i> Slide Title *
+                                </label>
+                                <input type="text" id="slideTitle" name="title" placeholder="e.g., Chapter 1 - Introduction" required
+                                    style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="slideCourse" style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                    <i class="fas fa-book"></i> Select Course *
+                                </label>
+                                {% if current_user.class_group and current_user.class_group.courses %}
+                                <select id="slideCourse" name="course_id" required
+                                    style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                                    <option value="">-- Choose Course --</option>
+                                    {% for course in current_user.class_group.courses %}
+                                    <option value="{{ course.id }}">{{ course.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% else %}
+                                <select id="slideCourse" name="course_id" required
+                                    style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                                    <option value="">No courses available</option>
+                                </select>
+                                {% endif %}
+                            </div>
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="slideFile" style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                    <i class="fas fa-file"></i> Select File (PDF, PPT, PPTX) *
+                                </label>
+                                <input type="file" id="slideFile" name="file" accept=".pdf,.ppt,.pptx" required
+                                    style="width: 100%; padding: 10px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: white; font-size: 14px;">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 15px;">
+                            <label for="slideDescription" style="color: white; display: block; margin-bottom: 8px; font-size: 14px;">
+                                <i class="fas fa-align-left"></i> Description (Optional)
+                            </label>
+                            <textarea id="slideDescription" name="description" rows="2" placeholder="Brief description of the slide content..."
+                                style="width: 100%; padding: 12px; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; background: rgba(255,255,255,0.1); color: white; font-size: 14px; resize: vertical;"></textarea>
+                        </div>
+                        <button type="submit" class="btn-primary" style="width: 100%;">
+                            <i class="fas fa-upload"></i> Upload Slide
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            {% if courses %}
+                {% for course in courses %}
+                <div class="table-card" style="margin-bottom: 20px;">
+                    <h2><i class="fas fa-book"></i> {{ course.name }}</h2>
+                    {% set course_resources = course.resources|selectattr('category', 'equalto', 'Lecture Slides')|selectattr('is_approved', 'equalto', True)|list %}
+                    {% if course_resources %}
+                        <div style="display: grid; gap: 15px;">
+                            {% for slide in course_resources %}
+                            <div style="padding: 15px; background: rgba(255, 255, 255, 0.05); border-radius: 10px; border-left: 3px solid rgba(59, 130, 246, 0.8);">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div style="flex: 1;">
+                                        <h3 style="color: white; font-size: 16px; margin-bottom: 5px;">📄 {{ slide.title }}</h3>
+                                        <p style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">
+                                            Uploaded by {{ slide.uploader.username }} on {{ slide.created_at.strftime('%B %d, %Y') }}
+                                        </p>
+                                        {% if slide.description %}
+                                        <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin-top: 8px;">{{ slide.description }}</p>
+                                        {% endif %}
+                                    </div>
+                                    <div style="display: flex; gap: 8px;">
+                                        <a href="{{ url_for('main.download_slide', slide_id=slide.id) }}" class="btn btn-download">Download</a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; padding: 30px; color: rgba(255, 255, 255, 0.5);">
+                            <i class="fas fa-folder-open" style="font-size: 36px; margin-bottom: 10px; opacity: 0.5;"></i>
+                            <p>No slides yet for this course.</p>
+                        </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="table-card">
+                    <div class="empty-state">
+                        <i class="fas fa-book-open" style="font-size: 48px; color: rgba(255,255,255,0.3); margin-bottom: 15px;"></i>
+                        <p>No courses available yet.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // File upload drag and drop
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileName = document.getElementById('fileName');
+        const uploadBtn = document.getElementById('uploadBtn');
+
+        if (dropZone && fileInput) {
+            dropZone.addEventListener('click', () => fileInput.click());
+
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(255, 255, 255, 0.6)';
+                dropZone.style.background = 'rgba(255, 255, 255, 0.1)';
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                dropZone.style.background = 'rgba(255, 255, 255, 0.05)';
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.borderColor = 'rgba(255, 255, 255, 0.4)';
+                dropZone.style.background = 'rgba(255, 255, 255, 0.05)';
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    fileName.textContent = `Selected: ${files[0].name}`;
+                    uploadBtn.style.display = 'block';
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    fileName.textContent = `Selected: ${e.target.files[0].name}`;
+                    uploadBtn.style.display = 'block';
+                }
+            });
+        }
+        
+        // Geolocation Attendance System
+        function startAttendanceSession() {
+            const courseSelect = document.getElementById('attendanceCourse');
+            const locationStatus = document.getElementById('locationStatus');
+            
+            if (!courseSelect || !courseSelect.value) {
+                alert('Please select a course first!');
+                return;
+            }
+            
+            locationStatus.style.display = 'block';
+            locationStatus.style.background = 'rgba(59, 130, 246, 0.2)';
+            locationStatus.style.border = '1px solid rgba(59, 130, 246, 0.4)';
+            locationStatus.style.color = 'white';
+            locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting your location...';
+            
+            if (!navigator.geolocation) {
+                locationStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+                locationStatus.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                locationStatus.innerHTML = '❌ Geolocation is not supported by your browser.';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    document.getElementById('repLatitude').value = position.coords.latitude;
+                    document.getElementById('repLongitude').value = position.coords.longitude;
+                    
+                    locationStatus.style.background = 'rgba(34, 197, 94, 0.2)';
+                    locationStatus.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+                    locationStatus.innerHTML = '✅ Location captured! Starting session...';
+                    
+                    // Submit the form
+                    setTimeout(() => {
+                        document.getElementById('attendanceForm').submit();
+                    }, 500);
+                },
+                function(error) {
+                    locationStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+                    locationStatus.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            locationStatus.innerHTML = '❌ Location permission denied. Please enable location access.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            locationStatus.innerHTML = '❌ Location information unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            locationStatus.innerHTML = '❌ Location request timed out.';
+                            break;
+                        default:
+                            locationStatus.innerHTML = '❌ An unknown error occurred.';
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+        
+        // Mark Rep's Own Attendance
+        function markRepSelfAttendance() {
+            const courseSelect = document.getElementById('repSelfAttendanceCourse');
+            const locationStatus = document.getElementById('repSelfLocationStatus');
+            const indexNumber = document.querySelector('input[name="index_number"]');
+            
+            if (!courseSelect || !courseSelect.value) {
+                alert('Please select a course first!');
+                return;
+            }
+            
+            if (!indexNumber || !indexNumber.value.trim()) {
+                alert('Please enter your index number!');
+                return;
+            }
+            
+            locationStatus.style.display = 'block';
+            locationStatus.style.background = 'rgba(59, 130, 246, 0.2)';
+            locationStatus.style.border = '1px solid rgba(59, 130, 246, 0.4)';
+            locationStatus.style.color = 'white';
+            locationStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Getting your location...';
+            
+            if (!navigator.geolocation) {
+                locationStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+                locationStatus.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                locationStatus.innerHTML = '❌ Geolocation is not supported by your browser.';
+                return;
+            }
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    document.getElementById('repSelfLatitude').value = position.coords.latitude;
+                    document.getElementById('repSelfLongitude').value = position.coords.longitude;
+                    
+                    locationStatus.style.background = 'rgba(34, 197, 94, 0.2)';
+                    locationStatus.style.border = '1px solid rgba(34, 197, 94, 0.4)';
+                    locationStatus.innerHTML = '✅ Location captured! Marking attendance...';
+                    
+                    // Submit the form
+                    setTimeout(() => {
+                        document.getElementById('repSelfAttendanceForm').submit();
+                    }, 500);
+                },
+                function(error) {
+                    locationStatus.style.background = 'rgba(239, 68, 68, 0.2)';
+                    locationStatus.style.border = '1px solid rgba(239, 68, 68, 0.4)';
+                    
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            locationStatus.innerHTML = '❌ Location permission denied. Please enable location access.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            locationStatus.innerHTML = '❌ Location information unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            locationStatus.innerHTML = '❌ Location request timed out.';
+                            break;
+                        default:
+                            locationStatus.innerHTML = '❌ An unknown error occurred.';
+                    }
+                },
+                {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                }
+            );
+        }
+    </script>
+    <!-- Paystack JS SDK with offline fallback -->
+    <script src="https://js.paystack.co/v1/inline.js" onerror="console.warn('Paystack SDK failed to load - payment features disabled offline')"></script>
+    
+    <script>
+        // Paystack Payment Functions
+        const PAYSTACK_PUBLIC_KEY = 'pk_test_YOUR_PUBLIC_KEY_HERE'; // Replace with your actual public key
+        
+        function paySemester() {
+            initiatePayment(10000, 'Semester Subscription (120 days)'); // 100 GHS in kobo (100 * 100)
+        }
+        
+        function payYearly() {
+            initiatePayment(20500, 'Yearly Subscription (365 days)'); // 205 GHS in kobo (205 * 100)
+        }
+        
+        function initiatePayment(amount, description) {
+            const handler = PaystackPop.setup({
+                key: PAYSTACK_PUBLIC_KEY,
+                email: '{{ current_user.email }}',
+                amount: amount, // Amount in kobo
+                currency: 'GHS',
+                ref: 'UP_' + Math.floor((Math.random() * 1000000000) + 1), // Generate unique reference
+                metadata: {
+                    custom_fields: [
+                        {
+                            display_name: "Class Group",
+                            variable_name: "class_group_id",
+                            value: "{{ current_user.class_group_id if current_user.class_group_id else 'N/A' }}"
+                        },
+                        {
+                            display_name: "User",
+                            variable_name: "username",
+                            value: "{{ current_user.username }}"
+                        },
+                        {
+                            display_name: "Plan",
+                            variable_name: "plan",
+                            value: description
+                        }
+                    ]
+                },
+                callback: function(response) {
+                    // Payment successful - verify on backend
+                    window.location.href = '/verify_payment/' + response.reference;
+                },
+                onClose: function() {
+                    alert('Payment window closed. Transaction was not completed.');
+                }
+            });
+            handler.openIframe();
+        }
+        
+        // Copy to clipboard function
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(function() {
+                alert('✅ Code copied: ' + text);
+            }, function(err) {
+                console.error('Could not copy text: ', err);
+            });
+        }
+        
+        // Edit broadcast function
+        function editBroadcast(button) {
+            const broadcastId = button.getAttribute('data-broadcast-id');
+            const message = button.getAttribute('data-broadcast-message');
+            
+            // Populate the form with existing message
+            document.getElementById('broadcastMessage').value = message;
+            
+            // Change form action to edit route
+            document.getElementById('broadcastForm').action = '/edit_broadcast/' + broadcastId;
+            
+            // Change button text
+            document.getElementById('broadcastBtn').innerHTML = '<i class="fas fa-save"></i> Update Broadcast';
+            document.getElementById('broadcastBtn').style.background = 'rgba(59, 130, 246, 0.8)';
+            
+            // Scroll to form
+            document.getElementById('broadcastForm').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add cancel button if not exists
+            if (!document.getElementById('cancelEditBtn')) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.id = 'cancelEditBtn';
+                cancelBtn.type = 'button';
+                cancelBtn.className = 'btn-download-all';
+                cancelBtn.innerHTML = 'Cancel';
+                cancelBtn.style.width = '100%';
+                cancelBtn.style.marginTop = '10px';
+                cancelBtn.style.background = 'rgba(107, 114, 128, 0.8)';
+                cancelBtn.onclick = cancelEdit;
+                document.getElementById('broadcastBtn').parentNode.appendChild(cancelBtn);
+            }
+        }
+        
+        // Cancel edit function
+        function cancelEdit() {
+            document.getElementById('broadcastMessage').value = '';
+            document.getElementById('broadcastForm').action = '{{ url_for("main.post_broadcast") }}';
+            document.getElementById('broadcastBtn').innerHTML = 'Broadcast to All Students';
+            document.getElementById('broadcastBtn').style.background = '';
+            
+            const cancelBtn = document.getElementById('cancelEditBtn');
+            if (cancelBtn) {
+                cancelBtn.remove();
+            }
+        }
+    </script>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <!-- PWA Installation and Service Worker Script -->
+    <script>
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        requestNotificationPermission(registration);
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // Request notification permission and subscribe to push notifications
+        function requestNotificationPermission(registration) {
+            if ('Notification' in window && 'PushManager' in window) {
+                Notification.requestPermission().then(function(permission) {
+                    if (permission === 'granted') {
+                        console.log('Notification permission granted');
+                        subscribeUserToPush(registration);
+                    }
+                });
+            }
+        }
+
+        // Subscribe user to push notifications
+        function subscribeUserToPush(registration) {
+            const vapidPublicKey = 'BJ0NhRxu2xt6WjuwIBZn4nmfuktPH7I6BLAM5FXbB4OQWAKQP8F_9eyXCymxMZpnabVa5x5RI0_8WZ5gA8QzkQ4';
+            
+            const subscribeOptions = {
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+            };
+
+            return registration.pushManager.subscribe(subscribeOptions)
+                .then(function(pushSubscription) {
+                    return sendSubscriptionToServer(pushSubscription);
+                })
+                .catch(function(err) {
+                    console.log('Failed to subscribe the user: ', err);
+                });
+        }
+
+        // Send subscription data to server
+        function sendSubscriptionToServer(subscription) {
+            return fetch('/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(subscription)
+            });
+        }
+
+        // Convert VAPID key
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding).replace(/\-/g, '+').replace(/_/g, '/');
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+        
+        // Loading Screen Management
+        setTimeout(function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                loadingScreen.style.opacity = '0';
+                setTimeout(function() {
+                    loadingScreen.style.display = 'none';
+                }, 300);
+            }
+        }, 500);
+    </script>
+</body>
+</html>

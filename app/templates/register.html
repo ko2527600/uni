@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="login-page">
+    <div class="login-container">
+        <div class="logo">
+            <img src="/static/logo.png" alt="UniPortal Logo">
+            <h1>UniPortal</h1>
+            <p>Create Your Account</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="{{ url_for('main.register') }}" autocomplete="off">
+            <div class="form-group">
+                <label for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
+                <input type="text" id="username" name="username" placeholder="Choose a username" autocomplete="off" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" autocomplete="off" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
+                <input type="password" id="password" name="password" placeholder="Choose a password" autocomplete="new-password" required>
+            </div>
+
+            <div class="form-group">
+                <label for="role">
+                    <i class="fas fa-user-tag"></i> Role
+                </label>
+                <select id="role" name="role" required onchange="toggleClassCode()">
+                    <option value="Student">Student</option>
+                    <option value="Lecturer">Lecturer</option>
+                    <option value="Rep">Class Representative</option>
+                </select>
+            </div>
+
+            <!-- Student Code Field -->
+            <div class="form-group" id="studentCodeGroup">
+                <label for="join_code">
+                    <i class="fas fa-key"></i> Student Class Code <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" id="join_code" name="join_code" placeholder="Enter Student Code from your Class Rep" style="text-transform: uppercase;">
+                <small class="form-hint">
+                    <i class="fas fa-info-circle"></i> Get this code from your Class Representative.
+                </small>
+            </div>
+
+            <!-- Lecturer Code Field -->
+            <div class="form-group" id="lecturerCodeGroup" style="display: none;">
+                <label for="lecturer_code">
+                    <i class="fas fa-chalkboard-teacher"></i> Lecturer Class Code <span style="color: #ef4444;">*</span>
+                </label>
+                <input type="text" id="lecturer_code" name="lecturer_code" placeholder="Enter Lecturer Code from your Class Rep" style="text-transform: uppercase;">
+                <small class="form-hint">
+                    <i class="fas fa-info-circle"></i> Lecturers must enter the Lecturer Code to join a class. Get this from your Class Rep.
+                </small>
+            </div>
+
+            <!-- Rep Code Field -->
+            <div class="form-group" id="repCodeGroup" style="display: none;">
+                <label for="rep_code">
+                    <i class="fas fa-key"></i> Class Code <span style="font-weight: 400; font-size: 12px;">(Optional)</span>
+                </label>
+                <input type="text" id="rep_code" name="rep_code" placeholder="Enter Code to join existing class" style="text-transform: uppercase;">
+                <small class="form-hint">
+                    <i class="fas fa-info-circle"></i> Leave empty to create your own class, or enter a code to join an existing class.
+                </small>
+            </div>
+
+            <!-- Terms and Conditions Checkbox -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label style="display: flex; align-items: start; gap: 10px; cursor: pointer; color: white; font-size: 14px;">
+                    <input type="checkbox" name="terms_accepted" required style="margin-top: 3px; width: 18px; height: 18px; cursor: pointer;">
+                    <span>
+                        I agree to the <a href="{{ url_for('main.terms') }}" target="_blank" style="color: #ffd700; text-decoration: underline; font-weight: 600;">Terms & Conditions</a>
+                    </span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="fas fa-user-plus"></i> Sign Up
+            </button>
+        </form>
+
+        <div class="login-link">
+            Already have an account? <a href="{{ url_for('main.login') }}">Login here</a>
+        </div>
+
+        <div class="login-link" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.2);">
+            <i class="fas fa-chalkboard-teacher"></i> Are you a Lecturer? <a href="{{ url_for('main.claim_class') }}">Claim your class here</a>
+        </div>
+    </div>
+
+    <script>
+        // Toggle class code field based on role
+        function toggleClassCode() {
+            const role = document.getElementById('role').value;
+            const studentCodeGroup = document.getElementById('studentCodeGroup');
+            const lecturerCodeGroup = document.getElementById('lecturerCodeGroup');
+            const repCodeGroup = document.getElementById('repCodeGroup');
+            const joinCodeInput = document.getElementById('join_code');
+            const lecturerCodeInput = document.getElementById('lecturer_code');
+            const repCodeInput = document.getElementById('rep_code');
+            
+            // Hide all groups first
+            studentCodeGroup.style.display = 'none';
+            lecturerCodeGroup.style.display = 'none';
+            repCodeGroup.style.display = 'none';
+            
+            // Clear all inputs
+            joinCodeInput.required = false;
+            lecturerCodeInput.required = false;
+            repCodeInput.required = false;
+            
+            if (role === 'Student') {
+                studentCodeGroup.style.display = 'block';
+                joinCodeInput.required = true;
+            } else if (role === 'Lecturer') {
+                lecturerCodeGroup.style.display = 'block';
+                lecturerCodeInput.required = true;
+            } else if (role === 'Rep') {
+                repCodeGroup.style.display = 'block';
+                repCodeInput.required = false; // Optional for Reps
+            }
+        }
+
+        // Auto-fade flash messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize class code visibility
+            toggleClassCode();
+            
+            const flashMessages = document.querySelectorAll('.flash-msg');
+            flashMessages.forEach(function(flash) {
+                setTimeout(function() {
+                    flash.style.opacity = '0';
+                    flash.style.transform = 'translateY(-10px)';
+                    setTimeout(function() {
+                        flash.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

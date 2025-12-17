@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Forum - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="dashboard-page">
+    <!-- Mobile Top Bar (visible only on mobile) -->
+    <div class="mobile-top-bar">
+        <button class="mobile-hamburger" id="mobileMenuToggle" onclick="toggleMobileSidebar()">
+            <i class="fas fa-bars"></i>
+        </button>
+        <div class="mobile-logo">
+            <img src="/static/logo.png" alt="UniPortal">
+            <span>UniPortal</span>
+        </div>
+        <div class="mobile-avatar">
+            {{ current_user.avatar_initials }}
+        </div>
+    </div>
+
+    <!-- Sidebar (hidden on mobile by default, visible on desktop) -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-brand">
+                <img src="/static/logo.png" alt="UniPortal Logo">
+                <span>UniPortal</span>
+            </div>
+            
+            <!-- User Profile Section -->
+            <div style="margin-top: 15px; padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 10px; display: flex; align-items: center; gap: 12px;">
+                <div style="flex: 1; min-width: 0;">
+                    <div style="color: white; font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ current_user.username }}</div>
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 12px;">{{ current_user.role }}</div>
+                </div>
+                <a href="{{ url_for('main.profile') }}" style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: bold; color: white; text-decoration: none; flex-shrink: 0;">
+                    {{ current_user.avatar_initials }}
+                </a>
+            </div>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <a href="{{ url_for('main.dashboard') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-home"></i></span>
+                <span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('main.forum') }}" class="nav-item active">
+                <span class="icon"><i class="fas fa-comments"></i></span>
+                <span>Forum</span>
+            </a>
+            <a href="{{ url_for('main.library') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-book-open"></i></span>
+                <span>Library</span>
+            </a>
+            <a href="{{ url_for('main.settings') }}" class="nav-item">
+                <span class="icon"><i class="fas fa-cog"></i></span>
+                <span>Settings</span>
+            </a>
+            <a href="{{ url_for('main.logout') }}" class="nav-item" onclick="return confirmLogout(event);">
+                <span class="icon"><i class="fas fa-sign-out-alt"></i></span>
+                <span>Logout</span>
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title"><i class="fas fa-comments"></i> Class Forum</h1>
+                <p style="color: rgba(255, 255, 255, 0.8); margin-top: 5px;">
+                    {{ current_user.class_group.name if current_user.class_group else 'Class Discussion' }}
+                </p>
+            </div>
+            <button onclick="openNewPostModal()" class="btn-download-all">
+                <i class="fas fa-plus"></i> New Question
+            </button>
+        </div>
+        
+        <!-- Forum Posts -->
+        <div class="table-card">
+            {% if posts %}
+                <div style="display: grid; gap: 20px;">
+                    {% for post in posts %}
+                    <div class="glass-card" onclick="window.location.href='{{ url_for('main.forum_post', post_id=post.id) }}'" style="cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(0,0,0,0.3)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+                        <h3 style="color: white; font-size: 20px; font-weight: 600; margin-bottom: 10px;">{{ post.title }}</h3>
+                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px; display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 15px;">
+                            <span><i class="fas fa-user"></i> {{ post.author.username }}</span>
+                            <span><i class="fas fa-clock"></i> {{ post.timestamp.strftime('%b %d, %Y at %H:%M') }}</span>
+                            <span><i class="fas fa-comments"></i> {{ post.replies|length }} replies</span>
+                        </div>
+                        <div style="color: rgba(255, 255, 255, 0.9); line-height: 1.6;">
+                            {{ post.content[:200] }}{{ '...' if post.content|length > 200 else '' }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-comments" style="font-size: 64px; color: rgba(255,255,255,0.3); margin-bottom: 20px;"></i>
+                    <h3 style="color: white; margin-bottom: 10px;">No Discussions Yet</h3>
+                    <p>Start the conversation by asking a question!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- New Post Modal -->
+    <div id="newPostModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); z-index: 2000; align-items: center; justify-content: center;">
+        <div style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto;">
+            <h2 style="color: #333; margin-bottom: 20px;"><i class="fas fa-question-circle"></i> Ask a Question</h2>
+            <form method="POST" action="{{ url_for('main.forum_create') }}">
+                <div class="form-group">
+                    <label style="display: block; color: #333; font-weight: 600; margin-bottom: 8px;">Question Title</label>
+                    <input type="text" name="title" placeholder="What's your question?" required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px;">
+                </div>
+                <div class="form-group">
+                    <label style="display: block; color: #333; font-weight: 600; margin-bottom: 8px;">Details</label>
+                    <textarea name="content" placeholder="Provide more details about your question..." required style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; resize: vertical; min-height: 150px; font-family: inherit;"></textarea>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                        <i class="fas fa-paper-plane"></i> Post Question
+                    </button>
+                    <button type="button" onclick="closeNewPostModal()" style="flex: 1; padding: 12px; background: #6b7280; color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer;">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        function openNewPostModal() {
+            document.getElementById('newPostModal').style.display = 'flex';
+        }
+        
+        function closeNewPostModal() {
+            document.getElementById('newPostModal').style.display = 'none';
+        }
+        
+        // Close modal when clicking outside
+        document.getElementById('newPostModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNewPostModal();
+            }
+        });
+        
+        function confirmLogout(event) {
+            return confirm('Are you sure you want to logout?');
+        }
+    </script>
+</body>
+</html>

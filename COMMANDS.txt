@@ -1,0 +1,56 @@
+═══════════════════════════════════════════════════════════════
+  📋 UNIPORTAL - QUICK COMMAND REFERENCE
+═══════════════════════════════════════════════════════════════
+
+BASIC COMMANDS
+──────────────
+Start server (HTTP):
+    python run.py
+
+Start server (HTTPS for phone geolocation):
+    python run.py --https
+
+Check your IP address:
+    python check_network.py
+
+Setup HTTPS support:
+    python setup_https.py
+    OR
+    pip install pyOpenSSL
+
+═══════════════════════════════════════════════════════════════
+
+ACCESS URLS
+───────────
+From computer:
+    http://localhost:5000
+
+From phone (HTTP - no geolocation):
+    http://YOUR_IP:5000
+
+From phone (HTTPS - with geolocation):
+    https://YOUR_IP:5000
+
+═══════════════════════════════════════════════════════════════
+
+QUICK SETUP FOR PHONE ACCESS
+─────────────────────────────
+1. pip install pyOpenSSL
+2. python run.py --https
+3. On phone: https://YOUR_IP:5000
+4. Accept security warning
+5. Done! Geolocation works ✅
+
+═══════════════════════════════════════════════════════════════
+
+FEATURES THAT NEED HTTPS ON PHONE
+──────────────────────────────────
+✓ Geolocation Attendance (Rep starting session)
+✓ Geolocation Attendance (Student marking attendance)
+
+FEATURES THAT WORK WITHOUT HTTPS
+─────────────────────────────────
+✓ All other features (login, upload, grades, etc.)
+✓ Geolocation on localhost (computer)
+
+═══════════════════════════════════════════════════════════════

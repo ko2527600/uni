@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Scroll Test - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Device-specific CSS -->
+    {% if is_mobile %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_force.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-scroll-fix.css') }}">
+    {% endif %}
+    
+    <style>
+        .test-content {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 20px;
+            border-radius: 15px;
+            color: white;
+        }
+        
+        .test-section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+        
+        .scroll-indicator {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            z-index: 9999;
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="scroll-indicator" id="scrollIndicator">
+        Scroll: 0px
+    </div>
+    
+    <div class="test-content">
+        <h1><i class="fas fa-mobile-alt"></i> Mobile Scroll Test</h1>
+        <p>This page tests mobile scrolling functionality. If you can scroll up and down, the fix is working!</p>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-check-circle"></i> Section 1</h2>
+            <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-star"></i> Section 2</h2>
+            <p>Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-heart"></i> Section 3</h2>
+            <p>Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-cog"></i> Section 4</h2>
+            <p>Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-bell"></i> Section 5</h2>
+            <p>Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-user"></i> Section 6</h2>
+            <p>Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur?</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-home"></i> Section 7</h2>
+            <p>Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-book"></i> Section 8</h2>
+            <p>At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.</p>
+        </div>
+        
+        <div class="test-section">
+            <h2><i class="fas fa-download"></i> Final Section</h2>
+            <p>If you can see this section and scroll back to the top, the mobile scrolling fix is working correctly!</p>
+            <p><strong>Test completed successfully! 🎉</strong></p>
+        </div>
+        
+        <div style="height: 100px; background: rgba(0, 255, 0, 0.2); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin-top: 30px;">
+            <p><strong>END OF PAGE - Scrolling works! ✅</strong></p>
+        </div>
+    </div>
+
+    <script>
+        // Track scroll position
+        window.addEventListener('scroll', function() {
+            const scrollIndicator = document.getElementById('scrollIndicator');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            scrollIndicator.textContent = `Scroll: ${Math.round(scrollTop)}px`;
+        });
+        
+        // Debug scrolling on load
+        window.addEventListener('load', function() {
+            console.log('=== SCROLL TEST DEBUG ===');
+            console.log('Document height:', document.documentElement.scrollHeight);
+            console.log('Window height:', window.innerHeight);
+            console.log('Can scroll:', document.documentElement.scrollHeight > window.innerHeight);
+            console.log('Body overflow:', getComputedStyle(document.body).overflow);
+            console.log('Body height:', getComputedStyle(document.body).height);
+            console.log('HTML overflow:', getComputedStyle(document.documentElement).overflow);
+        });
+    </script>
+</body>
+</html>

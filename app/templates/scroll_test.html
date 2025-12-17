@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Scroll Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .content {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        
+        .section {
+            background: rgba(255, 255, 255, 0.1);
+            margin: 20px 0;
+            padding: 20px;
+            border-radius: 10px;
+            min-height: 200px;
+        }
+        
+        .tall-section {
+            height: 150vh;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            margin: 10px;
+            cursor: pointer;
+        }
+        
+        button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="content">
+        <h1>📱 Simple Scroll Test</h1>
+        <p>This is a basic HTML page to test scrolling on mobile devices.</p>
+        
+        <div class="section">
+            <h2>Section 1</h2>
+            <p>If you can scroll up and down on this page, then scrolling works on your device.</p>
+            <button onclick="scrollToBottom()">Scroll to Bottom</button>
+        </div>
+        
+        <div class="section">
+            <h2>Section 2</h2>
+            <p>This page has minimal CSS and should scroll properly on all devices.</p>
+            <p><strong>Device Info:</strong></p>
+            <p>User Agent: <span id="userAgent"></span></p>
+            <p>Screen Size: <span id="screenSize"></span></p>
+            <p>Viewport Size: <span id="viewportSize"></span></p>
+        </div>
+        
+        <div class="section">
+            <h2>Section 3</h2>
+            <p>Try scrolling up and down. You should be able to see all sections.</p>
+            <button onclick="testScroll()">Test Scroll Function</button>
+        </div>
+        
+        <div class="section">
+            <h2>Section 4</h2>
+            <p>This section is in the middle of the page.</p>
+        </div>
+        
+        <div class="section">
+            <h2>Section 5</h2>
+            <p>Keep scrolling down to see more content.</p>
+        </div>
+        
+        <div class="tall-section">
+            <h2>🎯 Tall Section</h2>
+            <p>This section is very tall (150% of viewport height)</p>
+            <p>If you can see this, scrolling is definitely working!</p>
+            <button onclick="scrollToTop()">Scroll to Top</button>
+        </div>
+        
+        <div class="section">
+            <h2>Section 6</h2>
+            <p>More content to scroll through.</p>
+        </div>
+        
+        <div class="section">
+            <h2>Section 7</h2>
+            <p>Even more content.</p>
+        </div>
+        
+        <div class="section">
+            <h2>🏁 Final Section</h2>
+            <p>You've reached the bottom! Scrolling is working correctly.</p>
+            <button onclick="scrollToTop()">Back to Top</button>
+            <button onclick="goToMainApp()">Go to Main App</button>
+        </div>
+    </div>
+    
+    <script>
+        // Update device info
+        function updateDeviceInfo() {
+            document.getElementById('userAgent').textContent = navigator.userAgent;
+            document.getElementById('screenSize').textContent = `${screen.width} x ${screen.height}`;
+            document.getElementById('viewportSize').textContent = `${window.innerWidth} x ${window.innerHeight}`;
+        }
+        
+        // Scroll functions
+        function scrollToTop() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+        
+        function scrollToBottom() {
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+        
+        function testScroll() {
+            alert('Testing scroll... Watch the page move!');
+            window.scrollBy({ top: 200, behavior: 'smooth' });
+        }
+        
+        function goToMainApp() {
+            window.location.href = '/';
+        }
+        
+        // Initialize
+        updateDeviceInfo();
+        
+        // Update on resize
+        window.addEventListener('resize', updateDeviceInfo);
+        window.addEventListener('orientationchange', function() {
+            setTimeout(updateDeviceInfo, 500);
+        });
+        
+        // Log scroll events
+        let scrollCount = 0;
+        window.addEventListener('scroll', function() {
+            scrollCount++;
+            if (scrollCount % 10 === 0) {
+                console.log(`Scroll event ${scrollCount}: Y=${window.scrollY}`);
+            }
+        });
+        
+        console.log('Simple scroll test page loaded');
+        console.log('Document height:', document.documentElement.scrollHeight);
+        console.log('Window height:', window.innerHeight);
+        console.log('Can scroll:', document.documentElement.scrollHeight > window.innerHeight);
+    </script>
+</body>
+</html>

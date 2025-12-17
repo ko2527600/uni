@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniPortal - Verify Account</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            width: 500px;
+            height: 500px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            top: -250px;
+            right: -250px;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            bottom: -200px;
+            left: -200px;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(20px); }
+        }
+
+        .verify-container {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 50px 40px;
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 400px;
+            z-index: 1;
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo h1 {
+            color: white;
+            font-size: 36px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .info-box {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .info-box p {
+            color: white;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info-box .email {
+            font-weight: 600;
+            color: #ffd700;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            color: white;
+            font-weight: 500;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            letter-spacing: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+            letter-spacing: normal;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn-verify {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-verify:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-verify:active {
+            transform: translateY(0);
+        }
+
+        .flash-messages {
+            margin-bottom: 20px;
+        }
+
+        .flash-msg {
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            font-size: 14px;
+            animation: slideIn 0.3s ease;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .flash-msg.fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .flash-msg.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: white;
+        }
+
+        .flash-msg.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: white;
+        }
+
+        .flash-msg.info {
+            background: rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(59, 130, 246, 0.4);
+            color: white;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 20px;
+            color: white;
+            font-size: 14px;
+        }
+
+        .back-link a {
+            color: white;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="verify-container">
+        <div class="logo">
+            <h1>🔐 UniPortal</h1>
+            <p>Verify Your Account</p>
+        </div>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-msg {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="info-box">
+            <p>We've sent a 6-digit verification code to:</p>
+            <p class="email">{{ email }}</p>
+        </div>
+
+        {% if dev_code %}
+        <div style="background: rgba(255, 215, 0, 0.2); border: 2px solid rgba(255, 215, 0, 0.6); border-radius: 10px; padding: 20px; margin-bottom: 25px; text-align: center;">
+            <p style="color: white; font-size: 12px; margin-bottom: 8px; font-weight: 600;">🔐 DEV MODE - YOUR VERIFICATION CODE:</p>
+            <p style="color: #ffd700; font-size: 32px; font-weight: 700; letter-spacing: 8px; font-family: 'Courier New', monospace;">{{ dev_code }}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 11px; margin-top: 8px;">Copy this code and paste it below</p>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{{ url_for('main.verify') }}" autocomplete="off">
+            <div class="form-group">
+                <label for="code">6-Digit Code</label>
+                <input type="text" id="code" name="code" placeholder="000000" maxlength="6" pattern="[0-9]{6}" autocomplete="off" required>
+            </div>
+
+            <button type="submit" class="btn-verify">Verify Account</button>
+        </form>
+
+        <div style="text-align: center; margin-top: 20px;">
+            <p style="color: rgba(255, 255, 255, 0.7); font-size: 14px; margin-bottom: 10px;">Didn't receive the code?</p>
+            <form method="POST" action="{{ url_for('main.resend_verification') }}" style="display: inline;">
+                <button type="submit" style="background: transparent; border: 2px solid rgba(255, 255, 255, 0.3); color: white; padding: 10px 25px; border-radius: 25px; cursor: pointer; font-size: 14px; font-weight: 600; transition: all 0.3s;" onmouseover="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='rgba(255, 255, 255, 0.5)'" onmouseout="this.style.background='transparent'; this.style.borderColor='rgba(255, 255, 255, 0.3)'">
+                    <i class="fas fa-redo"></i> Resend Code
+                </button>
+            </form>
+        </div>
+
+        <div class="back-link">
+            <a href="{{ url_for('main.login') }}">Back to Login</a>
+        </div>
+    </div>
+
+    <script>
+        // Auto-fade flash messages after 3 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const flashMessages = document.querySelectorAll('.flash-msg');
+            flashMessages.forEach(function(flash) {
+                setTimeout(function() {
+                    flash.classList.add('fade-out');
+                    setTimeout(function() {
+                        flash.remove();
+                    }, 500); // Wait for fade animation to complete
+                }, 3000);
+            });
+        });
+    </script>
+</body>
+</html>

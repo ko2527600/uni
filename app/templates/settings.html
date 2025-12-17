@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Device-specific CSS -->
+    {% if is_mobile %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_force.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-scroll-fix.css') }}">
+    {% endif %}
+    <style>
+        .settings-container {
+            width: 100%;
+            max-width: 100%;
+            margin: 0;
+            padding: 32px;
+        }
+        
+        .settings-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .settings-section h2 {
+            color: white;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .danger-zone {
+            border: 2px solid rgba(239, 68, 68, 0.5);
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        .danger-zone h2 {
+            color: #ef4444;
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+        
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 15px 0;
+        }
+        
+        .checkbox-label input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        /* Desktop: 2-column grid for form inputs */
+        @media (min-width: 768px) {
+            .settings-grid-2 {
+                grid-template-columns: repeat(2, 1fr) !important;
+            }
+        }
+        
+        /* MOBILE SCROLLING FIX FOR SETTINGS PAGE */
+        @media (max-width: 768px) {
+            html, body {
+                overflow: auto !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                position: static !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            body.dashboard-page {
+                overflow: auto !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                position: static !important;
+                display: block !important;
+            }
+            
+            .settings-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                overflow: visible !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                position: static !important;
+                box-sizing: border-box !important;
+            }
+            
+            .login-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 15px !important;
+                overflow: visible !important;
+                height: auto !important;
+                position: static !important;
+                box-sizing: border-box !important;
+            }
+            
+            .settings-section {
+                margin-bottom: 20px !important;
+                padding: 15px !important;
+            }
+            
+            /* Force content to be tall enough to scroll */
+            .settings-container::after {
+                content: '';
+                display: block;
+                height: 100px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="settings-container">
+        <div class="login-container" style="max-width: 100%; width: 100%;">
+            <div class="logo">
+                <h1><i class="fas fa-cog"></i> Settings</h1>
+                <p>Manage your account and preferences</p>
+            </div>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages" style="margin-bottom: 20px;">
+                        {% for category, message in messages %}
+                            <div class="flash-msg {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Section 1: Security & Notifications (Everyone) -->
+            <div class="settings-section">
+                <h2><i class="fas fa-shield-alt"></i> Security & Notifications</h2>
+                <form method="POST" action="{{ url_for('main.settings') }}">
+                    <input type="hidden" name="action" value="update_profile">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="current_password">
+                                <i class="fas fa-lock"></i> Current Password
+                            </label>
+                            <input type="password" id="current_password" name="current_password" placeholder="Enter current password">
+                            <small style="color: rgba(255, 255, 255, 0.7); font-size: 12px; display: block; margin-top: 5px;">
+                                Leave blank to keep current password
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="settings-grid-2" style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="new_password">
+                                <i class="fas fa-key"></i> New Password
+                            </label>
+                            <input type="password" id="new_password" name="new_password" placeholder="Enter new password">
+                        </div>
+                        
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="confirm_password">
+                                <i class="fas fa-check-circle"></i> Confirm New Password
+                            </label>
+                            <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm new password">
+                        </div>
+                    </div>
+                    
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="receive_emails" {{ 'checked' if current_user.receive_emails else '' }}>
+                        <span><i class="fas fa-envelope"></i> Receive email notifications</span>
+                    </label>
+                    
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </form>
+            </div>
+            
+            <!-- Section 2: Danger Zone (Students & Reps) -->
+            {% if current_user.role in ['Student', 'Rep'] and current_user.class_group %}
+            <div class="settings-section danger-zone">
+                <h2><i class="fas fa-exclamation-triangle"></i> Danger Zone</h2>
+                <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 15px;">
+                    You are currently in: <strong>{{ current_user.class_group.name }}</strong>
+                </p>
+                <form method="POST" action="{{ url_for('main.settings') }}" onsubmit="return confirm('Are you sure you want to leave this class? This action cannot be undone.');">
+                    <input type="hidden" name="action" value="leave_class">
+                    <button type="submit" class="btn-danger">
+                        <i class="fas fa-sign-out-alt"></i> Leave Current Class
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            
+            <!-- Section 3: Class Management (Reps Only) -->
+            {% if current_user.role == 'Rep' and my_classes %}
+            <div class="settings-section">
+                <h2><i class="fas fa-users-cog"></i> Class Management</h2>
+                {% for class in my_classes %}
+                <div style="background: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 10px; margin-bottom: 15px;">
+                    <h3 style="color: white; margin-bottom: 15px;">{{ class.name }}</h3>
+                    <form method="POST" action="{{ url_for('main.settings') }}">
+                        <input type="hidden" name="action" value="update_class">
+                        <input type="hidden" name="class_id" value="{{ class.id }}">
+                        
+                        <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;">
+                            <div class="form-group" style="margin-bottom: 0;">
+                                <label for="class_name_{{ class.id }}">
+                                    <i class="fas fa-edit"></i> Class Name
+                                </label>
+                                <input type="text" id="class_name_{{ class.id }}" name="class_name" value="{{ class.name }}">
+                            </div>
+                        </div>
+                        
+                        <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+                            <div style="color: rgba(255, 255, 255, 0.9); font-size: 13px; margin-bottom: 8px;">
+                                <strong>Current Codes:</strong>
+                            </div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">
+                                Student Code: <code style="background: rgba(0, 255, 0, 0.2); color: #4ade80; padding: 3px 8px; border-radius: 4px;">{{ class.join_code }}</code>
+                            </div>
+                            <div style="color: rgba(255, 255, 255, 0.8); font-size: 12px; margin-top: 5px;">
+                                Lecturer Code: <code style="background: rgba(255, 165, 0, 0.2); color: #fb923c; padding: 3px 8px; border-radius: 4px;">{{ class.lecturer_code }}</code>
+                            </div>
+                        </div>
+                        
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="regenerate_codes">
+                            <span><i class="fas fa-sync"></i> Regenerate Join Codes (use if codes were compromised)</span>
+                        </label>
+                        
+                        <button type="submit" class="btn-login btn-warning">
+                            <i class="fas fa-save"></i> Update Class Settings
+                        </button>
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <!-- Section 4: System Configuration (Admins Only) -->
+            {% if current_user.role == 'Admin' %}
+            <div class="settings-section">
+                <h2><i class="fas fa-server"></i> System Configuration</h2>
+                <form method="POST" action="{{ url_for('main.settings') }}">
+                    <input type="hidden" name="action" value="update_system">
+                    
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 20px; margin-bottom: 20px;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label for="drive_folder_id">
+                                <i class="fab fa-google-drive"></i> Google Drive Folder ID
+                            </label>
+                            <input type="text" id="drive_folder_id" name="drive_folder_id" placeholder="Enter Google Drive Folder ID">
+                            <small style="color: rgba(255, 255, 255, 0.7); font-size: 12px; display: block; margin-top: 5px;">
+                                Used for cloud backup and archiving
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn-login">
+                        <i class="fas fa-save"></i> Save System Settings
+                    </button>
+                </form>
+            </div>
+            {% endif %}
+            
+            <!-- Back Button -->
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ url_for('main.dashboard') }}" style="color: white; text-decoration: underline; font-size: 14px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <!-- Device-specific JavaScript -->
+    <script src="{{ url_for('static', filename='js/mobile.js') }}"></script>
+    
+    <script>
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-msg').forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-10px)';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 5000);
+        
+        // MOBILE SCROLLING FIX - Force enable scrolling on settings page
+        if (window.innerWidth <= 768) {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Force scrolling styles
+                const html = document.documentElement;
+                const body = document.body;
+                
+                html.style.cssText = 'overflow: auto !important; overflow-y: auto !important; height: auto !important; -webkit-overflow-scrolling: touch !important;';
+                body.style.cssText = 'overflow: auto !important; overflow-y: auto !important; height: auto !important; min-height: 100vh !important; position: static !important; -webkit-overflow-scrolling: touch !important;';
+                
+                // Force settings container to be scrollable
+                const settingsContainer = document.querySelector('.settings-container');
+                if (settingsContainer) {
+                    settingsContainer.style.cssText = 'overflow: visible !important; height: auto !important; min-height: 100vh !important; position: static !important;';
+                }
+                
+                const loginContainer = document.querySelector('.login-container');
+                if (loginContainer) {
+                    loginContainer.style.cssText = 'overflow: visible !important; height: auto !important; position: static !important;';
+                }
+                
+                // Add extra content to force scrolling
+                const extraDiv = document.createElement('div');
+                extraDiv.style.height = '50px';
+                extraDiv.style.width = '100%';
+                extraDiv.style.background = 'transparent';
+                document.body.appendChild(extraDiv);
+                
+                console.log('Settings page mobile scrolling fix applied');
+            });
+        }
+    </script>
+</body>
+</html>

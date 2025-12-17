@@ -1,0 +1,135 @@
+═══════════════════════════════════════════════════════════════
+  📍 GEOLOCATION ATTENDANCE - SETUP GUIDE
+═══════════════════════════════════════════════════════════════
+
+IMPORTANT: Geolocation requires HTTPS on mobile browsers!
+
+═══════════════════════════════════════════════════════════════
+  🚀 QUICK START (3 Steps)
+═══════════════════════════════════════════════════════════════
+
+STEP 1: Install HTTPS Support
+──────────────────────────────
+Run this command:
+    pip install pyOpenSSL
+
+Or use the setup script:
+    python setup_https.py
+
+STEP 2: Start Server with HTTPS
+────────────────────────────────
+    python run.py --https
+
+You'll see your IP address displayed!
+
+STEP 3: Access from Phone
+──────────────────────────
+1. On phone, go to: https://YOUR_IP:5000
+   Example: https://192.168.1.100:5000
+
+2. You'll see a security warning - this is NORMAL
+   Click "Advanced" → "Proceed anyway"
+   (It's safe - it's your own self-signed certificate)
+
+3. Now geolocation will work! ✅
+
+═══════════════════════════════════════════════════════════════
+  🧪 TESTING OPTIONS
+═══════════════════════════════════════════════════════════════
+
+OPTION A: Test on Computer First (Easiest)
+───────────────────────────────────────────
+1. Run: python run.py
+2. Open: http://localhost:5000
+3. Geolocation works on localhost without HTTPS!
+4. Test the attendance feature there
+
+OPTION B: Test on Phone with HTTPS
+───────────────────────────────────
+1. Install: pip install pyOpenSSL
+2. Run: python run.py --https
+3. Phone: https://YOUR_IP:5000
+4. Accept security warning
+5. Test geolocation attendance
+
+═══════════════════════════════════════════════════════════════
+  📱 HOW TO USE GEOLOCATION ATTENDANCE
+═══════════════════════════════════════════════════════════════
+
+FOR CLASS REPS:
+1. Login to Rep Dashboard
+2. Scroll to "📍 Geolocation Attendance"
+3. Select a course
+4. Click "Start Session"
+5. Allow location access when prompted
+6. Session started with your location!
+
+FOR STUDENTS:
+1. Login to Student Dashboard
+2. Scroll to "📍 Mark Attendance"
+3. Select the course
+4. Click "Mark Present"
+5. Allow location access when prompted
+6. If within 50 meters: ✅ Marked present!
+7. If too far: ❌ Error with distance shown
+
+═══════════════════════════════════════════════════════════════
+  🔧 TROUBLESHOOTING
+═══════════════════════════════════════════════════════════════
+
+Issue: "pyOpenSSL not installed"
+Solution: pip install pyOpenSSL
+
+Issue: Security warning on phone
+Solution: This is normal for self-signed certificates
+         Click "Advanced" → "Proceed" or "Continue"
+
+Issue: Location permission denied
+Solution: Check browser settings → Allow location
+         On Chrome: Settings → Site Settings → Location
+
+Issue: "No active attendance session"
+Solution: Rep must start a session first
+         Students can only mark attendance for active sessions
+
+Issue: "Too far from class"
+Solution: You must be within 50 meters of where Rep started session
+         Check you're in the correct classroom
+
+Issue: Geolocation not working on phone
+Solution: MUST use HTTPS (https://) not HTTP (http://)
+         Run with: python run.py --https
+
+═══════════════════════════════════════════════════════════════
+  💡 TIPS
+═══════════════════════════════════════════════════════════════
+
+✓ Test on computer first (localhost works without HTTPS)
+✓ Both devices must be on same WiFi
+✓ Rep starts session IN the classroom
+✓ Students mark attendance FROM the classroom
+✓ 50-meter radius = about half a football field
+✓ Export attendance as CSV from Rep dashboard
+✓ Each session can only be marked once per student
+
+═══════════════════════════════════════════════════════════════
+  🎯 WORKFLOW EXAMPLE
+═══════════════════════════════════════════════════════════════
+
+1. Rep arrives at classroom (Room 204)
+2. Rep opens app: https://192.168.1.100:5000
+3. Rep starts attendance session for "Math 101"
+4. System captures Rep's GPS coordinates
+
+5. Students arrive at Room 204
+6. Students open app on their phones
+7. Students select "Math 101" and click "Mark Present"
+8. System checks if student is within 50m of Rep's location
+9. If yes: Attendance marked ✅
+10. If no: Error shown with distance ❌
+
+11. After class, Rep exports CSV with all attendance records
+
+═══════════════════════════════════════════════════════════════
+
+Need help? Check QUICK_PHONE_ACCESS.txt for network setup.

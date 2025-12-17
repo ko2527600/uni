@@ -1,0 +1,80 @@
+/* 
+MOBILE FORCE SCROLLING CSS
+This file aggressively overrides all CSS that prevents scrolling on mobile
+*/
+
+@media (max-width: 768px) {
+    /* NUCLEAR OPTION: Force scrolling on everything */
+    *, *::before, *::after {
+        overflow: visible !important;
+        max-height: none !important;
+        box-sizing: border-box !important;
+    }
+    
+    /* Remove any transforms that might interfere */
+    * {
+        transform: none !important;
+    }
+    
+    html {
+        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        max-height: none !important;
+        position: static !important;
+    }
+    
+    body {
+        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100vh !important;
+        position: static !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    body.dashboard-page {
+        overflow: auto !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100vh !important;
+        position: static !important;
+        display: block !important;
+    }
+    
+    .main-content {
+        overflow: visible !important;
+        overflow-y: visible !important;
+        overflow-x: hidden !important;
+        height: auto !important;
+        max-height: none !important;
+        min-height: 100vh !important;
+        position: static !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    .sidebar {
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch !important;
+    }
+    
+    /* Remove any fixed positioning that might interfere */
+    .glass-card,
+    .table-card,
+    .stat-card {
+        position: static !important;
+    }
+    
+    /* Ensure content has enough height to scroll */
+    .main-content::after {
+        content: '';
+        display: block;
+        height: 100px;
+        width: 100%;
+    }
+}

@@ -1,0 +1,258 @@
+{% from 'components.html' import card, badge, spinner %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src='https://www.googletagmanager.com/gtag/js?id=G-B1NCDL2PK0'></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-B1NCDL2PK0');
+    </script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UniPortal - The Academic Super-App{% endblock %}</title>
+    
+    <!-- Prevent white flash -->
+    <style>
+        html { background-color: #667eea !important; }
+    </style>
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="{{ url_for('static', filename='manifest.json') }}">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#667eea">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="UniPortal">
+    
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="{{ url_for('static', filename='icon-192x192.png') }}">
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='icon-192x192.png') }}">
+    
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=20241215">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sidebar-fix.css') }}?v=20241215">
+    
+    <!-- Device-specific CSS -->
+    {% if is_mobile %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}?v=20241215">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_force.css') }}?v=20241215">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-scroll-fix.css') }}?v=20241215">
+    {% endif %}
+
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="dashboard-page">
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">UniPortal</div>
+        <div class="loading-subtext">Loading your dashboard...</div>
+    </div>
+    
+    <!-- Main Content -->
+    {% block content %}{% endblock %}
+    
+    <!-- PWA Installation and Service Worker Script -->
+    <script>
+        // Loading Screen Management
+        window.addEventListener('load', function() {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                setTimeout(function() {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(function() {
+                        loadingScreen.style.display = 'none';
+                    }, 300);
+                }, 200);
+            }
+        });
+        
+        // Handle global errors gracefully
+        window.addEventListener('error', function(event) {
+            // Suppress Datadog and other extension errors
+            if (event.message && (
+                event.message.includes('Datadog') || 
+                event.message.includes('chrome-extension') ||
+                event.message.includes('moz-extension')
+            )) {
+                event.preventDefault();
+                return false;
+            }
+        });
+        
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                        
+                        // Request notification permission and subscribe
+                        requestNotificationPermission(registration);
+                    })
+                    .catch(function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+            });
+        }
+
+        // Request notification permission and subscribe to push notifications
+        function requestNotificationPermission(registration) {
+            if ('Notification' in window && 'PushManager' in window) {
+                // Check current permission status
+                if (Notification.permission === 'default') {
+                    // Only request if not already denied/blocked
+                    Notification.requestPermission().then(function(permission) {
+                        if (permission === 'granted') {
+                            console.log('Notification permission granted');
+                            subscribeUserToPush(registration);
+                        } else {
+                            console.log('Notification permission denied');
+                        }
+                    }).catch(function(error) {
+                        console.log('Notification permission request failed:', error);
+                    });
+                } else if (Notification.permission === 'granted') {
+                    console.log('Notification permission already granted');
+                    subscribeUserToPush(registration);
+                } else {
+                    console.log('Notification permission blocked or denied');
+                }
+            }
+        }
+
+        // Subscribe user to push notifications
+        function subscribeUserToPush(registration) {
+            // VAPID public key - Replace with your actual public key from generate_vapid.py
+            const vapidPublicKey = 'BJ0NhRxu2xt6WjuwIBZn4nmfuktPH7I6BLAM5FXbB4OQWAKQP8F_9eyXCymxMZpnabVa5x5RI0_8WZ5gA8QzkQ4';
+            
+            const subscribeOptions = {
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidPublicKey)
+            };
+
+            return registration.pushManager.subscribe(subscribeOptions)
+                .then(function(pushSubscription) {
+                    console.log('Received PushSubscription: ', JSON.stringify(pushSubscription));
+                    
+                    // Send subscription to server
+                    return sendSubscriptionToServer(pushSubscription);
+                })
+                .catch(function(err) {
+                    console.log('Failed to subscribe the user: ', err);
+                });
+        }
+
+        // Send subscription data to server
+        function sendSubscriptionToServer(subscription) {
+            return fetch('/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(subscription)
+            })
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('Bad status code from server.');
+                }
+                return response.json();
+            })
+            .then(function(responseData) {
+                console.log('Subscription sent to server successfully:', responseData);
+            })
+            .catch(function(err) {
+                console.log('Failed to send subscription to server:', err);
+            });
+        }
+
+        // Convert VAPID key
+        function urlBase64ToUint8Array(base64String) {
+            const padding = '='.repeat((4 - base64String.length % 4) % 4);
+            const base64 = (base64String + padding)
+                .replace(/\-/g, '+')
+                .replace(/_/g, '/');
+
+            const rawData = window.atob(base64);
+            const outputArray = new Uint8Array(rawData.length);
+
+            for (let i = 0; i < rawData.length; ++i) {
+                outputArray[i] = rawData.charCodeAt(i);
+            }
+            return outputArray;
+        }
+
+        // PWA Install Prompt
+        let deferredPrompt;
+        
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // Prevent Chrome 67 and earlier from automatically showing the prompt
+            e.preventDefault();
+            // Stash the event so it can be triggered later
+            deferredPrompt = e;
+            
+            // Show install button/banner (you can customize this)
+            showInstallPromotion();
+        });
+
+        function showInstallPromotion() {
+            // Create install banner with Tailwind CSS
+            const installBanner = document.createElement('div');
+            installBanner.innerHTML = `
+                <div class="fixed top-0 left-0 right-0 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-3 text-center z-50 shadow-lg">
+                    <span class="text-sm font-medium">📱 Install UniPortal for a better experience!</span>
+                    <button onclick="installPWA()" class="ml-3 bg-white text-indigo-600 px-4 py-2 rounded-md text-sm font-semibold hover:bg-gray-100 transition-colors">Install</button>
+                    <button onclick="dismissInstallPrompt()" class="ml-2 border border-white text-white px-4 py-2 rounded-md text-sm font-semibold hover:bg-white hover:bg-opacity-10 transition-colors">Later</button>
+                </div>
+            `;
+            document.body.appendChild(installBanner);
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                // Show the prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond to the prompt
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the A2HS prompt');
+                    } else {
+                        console.log('User dismissed the A2HS prompt');
+                    }
+                    deferredPrompt = null;
+                    dismissInstallPrompt();
+                });
+            }
+        }
+
+        function dismissInstallPrompt() {
+            const banner = document.querySelector('.fixed.top-0');
+            if (banner) {
+                banner.remove();
+            }
+        }
+
+        // Handle app installed event
+        window.addEventListener('appinstalled', (evt) => {
+            console.log('UniPortal was installed');
+            dismissInstallPrompt();
+        });
+    </script>
+    
+    <!-- Load main PWA JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    <!-- Device-specific JavaScript -->
+    <script src="{{ url_for('static', filename='js/mobile.js') }}?v=20241215"></script>
+    
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

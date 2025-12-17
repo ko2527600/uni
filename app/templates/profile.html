@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - UniPortal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome-local.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Device-specific CSS -->
+    {% if is_mobile %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_force.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-scroll-fix.css') }}">
+    {% endif %}
+    <style>
+        .profile-container {
+            max-width: 600px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        .avatar-section {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .avatar-circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border: 4px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .user-role {
+            display: inline-block;
+            padding: 6px 16px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        /* MOBILE SCROLLING FIX FOR PROFILE PAGE */
+        @media (max-width: 768px) {
+            html, body {
+                overflow: auto !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                position: static !important;
+                -webkit-overflow-scrolling: touch !important;
+            }
+            
+            body.dashboard-page {
+                overflow: auto !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                position: static !important;
+                display: block !important;
+            }
+            
+            .profile-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 10px !important;
+                overflow: visible !important;
+                height: auto !important;
+                min-height: 100vh !important;
+                position: static !important;
+                box-sizing: border-box !important;
+            }
+            
+            .login-container {
+                width: 100% !important;
+                max-width: 100% !important;
+                margin: 0 !important;
+                padding: 15px !important;
+                overflow: visible !important;
+                height: auto !important;
+                position: static !important;
+                box-sizing: border-box !important;
+            }
+            
+            /* Force content to be tall enough to scroll */
+            .profile-container::after {
+                content: '';
+                display: block;
+                height: 100px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+    <div class="profile-container">
+        <div class="login-container">
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                <div class="avatar-circle">
+                    {{ current_user.avatar_initials }}
+                </div>
+                <h2 style="color: white; margin: 10px 0;">{{ current_user.username }}</h2>
+                <span class="user-role">
+                    <i class="fas fa-user-tag"></i> {{ current_user.role }}
+                </span>
+            </div>
+            
+            <!-- Flash Messages -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="flash-messages" style="margin-bottom: 20px;">
+                        {% for category, message in messages %}
+                            <div class="flash-msg {{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+            
+            <!-- Profile Edit Form -->
+            <form method="POST" action="{{ url_for('main.profile') }}">
+                <div class="form-group">
+                    <label for="full_name">
+                        <i class="fas fa-id-card"></i> Full Name
+                    </label>
+                    <input 
+                        type="text" 
+                        id="full_name" 
+                        name="full_name" 
+                        placeholder="Enter your full name"
+                        value="{{ current_user.full_name or '' }}"
+                    >
+                    <small style="color: rgba(255, 255, 255, 0.7); font-size: 12px; display: block; margin-top: 5px;">
+                        <i class="fas fa-info-circle"></i> Used for avatar initials
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label for="username">
+                        <i class="fas fa-user"></i> Username
+                    </label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        placeholder="Username"
+                        value="{{ current_user.username }}"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="email">
+                        <i class="fas fa-envelope"></i> Email
+                    </label>
+                    <input 
+                        type="email" 
+                        id="email" 
+                        name="email" 
+                        placeholder="Email address"
+                        value="{{ current_user.email }}"
+                        required
+                    >
+                </div>
+
+                <button type="submit" class="btn-login">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+
+            <!-- Additional Info -->
+            <div style="margin-top: 30px; padding: 20px; background: rgba(255, 255, 255, 0.1); border-radius: 10px;">
+                <h3 style="color: white; font-size: 16px; margin-bottom: 15px;">
+                    <i class="fas fa-info-circle"></i> Account Information
+                </h3>
+                <div style="color: rgba(255, 255, 255, 0.8); font-size: 14px; line-height: 2;">
+                    <div><strong>Account Created:</strong> {{ current_user.created_at.strftime('%B %d, %Y') }}</div>
+                    <div><strong>User ID:</strong> #{{ current_user.id }}</div>
+                    {% if current_user.class_group %}
+                    <div><strong>Class Group:</strong> {{ current_user.class_group.name }}</div>
+                    {% endif %}
+                    {% if current_user.university %}
+                    <div><strong>University:</strong> {{ current_user.university.name }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="{{ url_for('main.dashboard') }}" style="color: white; text-decoration: underline; font-size: 14px;">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    
+    <!-- Device-specific JavaScript -->
+    <script src="{{ url_for('static', filename='js/mobile.js') }}"></script>
+    
+    <script>
+        // Auto-hide flash messages
+        setTimeout(() => {
+            document.querySelectorAll('.flash-msg').forEach(msg => {
+                msg.style.opacity = '0';
+                msg.style.transform = 'translateY(-10px)';
+                setTimeout(() => msg.remove(), 500);
+            });
+        }, 5000);
+        
+        // MOBILE SCROLLING FIX - Force enable scrolling on profile page
+        if (window.innerWidth <= 768) {
+            document.addEventListener('DOMContentLoaded', function() {
+                // Force scrolling styles
+                const html = document.documentElement;
+                const body = document.body;
+                
+                html.style.cssText = 'overflow: auto !important; overflow-y: auto !important; height: auto !important; -webkit-overflow-scrolling: touch !important;';
+                body.style.cssText = 'overflow: auto !important; overflow-y: auto !important; height: auto !important; min-height: 100vh !important; position: static !important; -webkit-overflow-scrolling: touch !important;';
+                
+                // Force profile container to be scrollable
+                const profileContainer = document.querySelector('.profile-container');
+                if (profileContainer) {
+                    profileContainer.style.cssText = 'overflow: visible !important; height: auto !important; min-height: 100vh !important; position: static !important;';
+                }
+                
+                const loginContainer = document.querySelector('.login-container');
+                if (loginContainer) {
+                    loginContainer.style.cssText = 'overflow: visible !important; height: auto !important; position: static !important;';
+                }
+                
+                // Add extra content to force scrolling
+                const extraDiv = document.createElement('div');
+                extraDiv.style.height = '50px';
+                extraDiv.style.width = '100%';
+                extraDiv.style.background = 'transparent';
+                document.body.appendChild(extraDiv);
+                
+                console.log('Profile page mobile scrolling fix applied');
+            });
+        }
+    </script>
+</body>
+</html>
